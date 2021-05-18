@@ -1,0 +1,10 @@
+#!/bin/bash
+
+SCRIPT=$(readlink $0)
+
+if [ "xx" == "x${SCRIPT}x" ]; then
+   SCRIPT=$0
+fi
+DIR=$(dirname ${SCRIPT})
+
+${DIR}/compile/popf2/popf3-clp $*
