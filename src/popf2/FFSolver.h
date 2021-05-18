@@ -171,7 +171,7 @@ private:
 
 protected:
     MinimalState * decorated;
-    
+
     ExtendedMinimalState(const ExtendedMinimalState & e)
     : decorated(new MinimalState(*(e.decorated))), startEventQueue(e.startEventQueue), timeStamp(e.timeStamp), stepBeforeTIL(e.stepBeforeTIL), tilFanIn(e.tilFanIn), tilComesBefore(e.tilComesBefore)  {
 
@@ -185,9 +185,9 @@ protected:
         }
 
     }
-        
+
     ExtendedMinimalState & operator=(const ExtendedMinimalState & e);
-    
+
 public:
 
     list<StartEvent> startEventQueue;
@@ -198,11 +198,11 @@ public:
     int tilFanIn;
     list<int> tilComesBefore;
     bool hasBeenDominated;
-    
+
     ExtendedMinimalState(const set<int> & f, const vector<double> & sMin, const vector<double> & sMax, const map<int, set<int> > & sa, const double & ts, const int & nt, const unsigned int & pl)
         : decorated(new MinimalState(f, sMin, sMax, sa, nt, pl)), timeStamp(ts), stepBeforeTIL(-1), tilFanIn(0), hasBeenDominated(false) {
     }
-        
+
     ExtendedMinimalState()
         : decorated(new MinimalState()), timeStamp(0.0), stepBeforeTIL(-1), tilFanIn(0), hasBeenDominated(false) {
     }
@@ -308,14 +308,14 @@ struct FullExtendedStateLessThan {
 };
 
 struct Solution {
-  
-    list<FFEvent> * plan;   
+
+    list<FFEvent> * plan;
     TemporalConstraints * constraints;
     double quality;
-    
+
     Solution();
     void update(const list<FFEvent> & newPlan, const TemporalConstraints * const newCons, const double & newMetric);
-    
+
 };
 
 class StateHash;
@@ -423,11 +423,11 @@ private:
      * @param theAction  The action applied to transform <code>parent</code> into <code>child</code>
      * @retval <code>true</code> if child is meaningfully different to parent
      */
-    static bool stateHasProgressedBeyondItsParent(const ActionSegment & theAction, const ExtendedMinimalState & parent, const ExtendedMinimalState & child);    
-    
-    static void evaluateStateAndUpdatePlan(auto_ptr<SearchQueueItem> & succ, ExtendedMinimalState & state, ExtendedMinimalState * prevState, set<int> & goals, set<int> & goalFluents, ParentData * const incrementalData, list<ActionSegment> & helpfulActionsExport, const ActionSegment & actID, list<FFEvent> & header);
+    static bool stateHasProgressedBeyondItsParent(const ActionSegment & theAction, const ExtendedMinimalState & parent, const ExtendedMinimalState & child);
 
-//  static void justEvaluateNotReuse(auto_ptr<SearchQueueItem> & succ, RPGHeuristic* rpg, ExtendedMinimalState & state, ExtendedMinimalState * prevState, set<int> & goals, set<int> & goalFluents, list<ActionSegment> & helpfulActionsExport, list<FFEvent> & extraEvents, list<FFEvent> & header, HTrio & bestNodeLimitHeuristic, list<FFEvent> *& bestNodeLimitPlan, bool & bestNodeLimitGoal, bool & stagnant, map<double, list<pair<int,int> > > * justApplied, double tilFrom=0.001);
+    static void evaluateStateAndUpdatePlan(unique_ptr<SearchQueueItem> & succ, ExtendedMinimalState & state, ExtendedMinimalState * prevState, set<int> & goals, set<int> & goalFluents, ParentData * const incrementalData, list<ActionSegment> & helpfulActionsExport, const ActionSegment & actID, list<FFEvent> & header);
+
+//  static void justEvaluateNotReuse(unique_ptr<SearchQueueItem> & succ, RPGHeuristic* rpg, ExtendedMinimalState & state, ExtendedMinimalState * prevState, set<int> & goals, set<int> & goalFluents, list<ActionSegment> & helpfulActionsExport, list<FFEvent> & extraEvents, list<FFEvent> & header, HTrio & bestNodeLimitHeuristic, list<FFEvent> *& bestNodeLimitPlan, bool & bestNodeLimitGoal, bool & stagnant, map<double, list<pair<int,int> > > * justApplied, double tilFrom=0.001);
 
 
 //  static bool checkTSTemporalSoundness(RPGHeuristic* const rpg, ExtendedMinimalState & theState, const int & theAction, const VAL::time_spec & ts, const double & incr, int oldTIL=-1);
@@ -440,14 +440,14 @@ private:
     static double evaluateMetric(const MinimalState & theState, const list<FFEvent> & plan, const bool printMetric=true);
 
     static bool carryOnSearching(const MinimalState & theState,  const list<FFEvent> & plan);
-    
+
     static Solution workingBestSolution;
-    
+
     static StateHash* getStateHash();
 public:
 
     static void printPlanAsDot(ostream & o, const list<FFEvent> & plan, const TemporalConstraints * cons);
-    
+
     static bool steepestDescent;
     static bool bestFirstSearch;
     static bool helpfulActions;
@@ -470,7 +470,7 @@ public:
     static bool openListOrderLowMakespanFirst;
     static bool useDominanceConstraintsInStateHash;
     static bool allowCompressionSafeScheduler;
-    
+
     //static list<instantiatedOp*> * solveSubproblem(LiteralSet & startingState, vector<pair<PNE*, double> > & startingFluents, SubProblem* const s);
     static Solution search(bool & reachedGoal);
 

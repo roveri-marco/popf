@@ -92,12 +92,12 @@ public:
         } else if (v->getKind() == E_DURATION_VAR) {
             if (debug) {
                 cout << "?duration term\n";
-            }            
+            }
             formula.push_back(RPGBuilder::Operand((int) - 3));
         } else if (v->getKind() == E_TOTAL_TIME) {
             if (debug) {
                 cout << "total-time term\n";
-            }            
+            }
             formula.push_back(RPGBuilder::Operand((int) - 4));
         } else {
             cout << "Error parsing expression: unsupported task constant " << *v << " found\n";
@@ -126,20 +126,20 @@ public:
                     || realPNE->getHead()->getName().find("stochastic-") == 0) {
                     if (debug) {
                         cout << "Stochastic duration PNE " << *realPNE << ", ID " << realPNE->getGlobalID() << std::endl;
-                    }                                                            
+                    }
                     formula.push_back(realPNE);
                 }
                 else
                 #endif
                 if (realPNE->getStateID() == -1) {
                     if (debug) {
-                        cout << "PNE " << *realPNE << ", with static value " << EFT(realPNE->getHead())->getInitial(realPNE->begin(), realPNE->end()).second << std::endl; 
-                    }                    
+                        cout << "PNE " << *realPNE << ", with static value " << EFT(realPNE->getHead())->getInitial(realPNE->begin(), realPNE->end()).second << std::endl;
+                    }
                     formula.push_back(RPGBuilder::Operand(EFT(realPNE->getHead())->getInitial(realPNE->begin(), realPNE->end()).second));
                 } else {
                     if (debug) {
                         cout << "PNE " << *realPNE << ", ID " << realPNE->getStateID() << std::endl;
-                    }                                        
+                    }
                     formula.push_back(RPGBuilder::Operand((int) realPNE->getStateID()));
                 }
             }
@@ -194,8 +194,8 @@ double RPGBuilder::calculateRHS(const list<Operand> & formula, vector<double> & 
         case RPGBuilder::NE_FLUENT:
             RHS.push_front(fluents[currOperand.fluentValue]);
             break;
-        #ifdef STOCHASTICDURATIONS            
-        case RPGBuilder::NE_STOCHASTIC_DURATION_TERM: {                    
+        #ifdef STOCHASTICDURATIONS
+        case RPGBuilder::NE_STOCHASTIC_DURATION_TERM: {
             assert(currOperand.durationVar);
             assert(EFT(currOperand.durationVar->getHead())->isStatic());
             RHS.push_front(EFT(currOperand.durationVar->getHead())->getInitial(currOperand.durationVar->begin(), currOperand.durationVar->end()).second);
@@ -218,7 +218,7 @@ pair<double, bool> RPGBuilder::constRHS(const list<Operand> & formula)
     list<double> RHS;
 
     assert(!formula.empty());
-    
+
     list<Operand>::const_iterator fItr = formula.begin();
     const list<Operand>::const_iterator fEnd = formula.end();
 
@@ -254,8 +254,8 @@ pair<double, bool> RPGBuilder::constRHS(const list<Operand> & formula)
             RHS.push_front(currOperand.constantValue);
             break;
         }
-        #ifdef STOCHASTICDURATIONS            
-        case RPGBuilder::NE_STOCHASTIC_DURATION_TERM: {                    
+        #ifdef STOCHASTICDURATIONS
+        case RPGBuilder::NE_STOCHASTIC_DURATION_TERM: {
             assert(currOperand.durationVar);
             if (EFT(currOperand.durationVar->getHead())->isStatic()) {
                 RHS.push_front(EFT(currOperand.durationVar->getHead())->getInitial(currOperand.durationVar->begin(), currOperand.durationVar->end()).second);
@@ -268,7 +268,7 @@ pair<double, bool> RPGBuilder::constRHS(const list<Operand> & formula)
         #endif
         case RPGBuilder::NE_FLUENT: {
             //cout << "Duration expression is non-constant\n";
-            return pair<double, bool>(0.0, false);            
+            return pair<double, bool>(0.0, false);
             break;
         }
         default:
@@ -278,10 +278,10 @@ pair<double, bool> RPGBuilder::constRHS(const list<Operand> & formula)
     }
 
     assert(!RHS.empty());
-    
-    //cout << "Duration expression is constant" << std::endl;    
+
+    //cout << "Duration expression is constant" << std::endl;
     //cout << "Value " << RHS.front() << std::endl;
-    
+
     return pair<double, bool>(RHS.front(), true);
 
 };
@@ -453,6 +453,7 @@ double RPGBuilder::NumericEffect::applyEffect(vector<double> & fluents) const
     default:
         // this should never happen
         assert(false);
+	return 0.0;
     }
 
 
@@ -606,8 +607,8 @@ void RPGBuilder::NumericPrecondition::display(ostream & o) const
                 }
             }
             break;
-            #ifdef STOCHASTICDURATIONS            
-            case RPGBuilder::NE_STOCHASTIC_DURATION_TERM: {                    
+            #ifdef STOCHASTICDURATIONS
+            case RPGBuilder::NE_STOCHASTIC_DURATION_TERM: {
                 assert(currOperand.durationVar);
                 o << " " << *(currOperand.durationVar);
                 break;
@@ -675,8 +676,8 @@ void RPGBuilder::NumericPrecondition::display(ostream & o) const
                 }
             }
             break;
-            #ifdef STOCHASTICDURATIONS            
-            case RPGBuilder::NE_STOCHASTIC_DURATION_TERM: {                    
+            #ifdef STOCHASTICDURATIONS
+            case RPGBuilder::NE_STOCHASTIC_DURATION_TERM: {
                 assert(currOperand.durationVar);
                 o << " " << *(currOperand.durationVar);
                 break;
@@ -859,7 +860,7 @@ void RPGBuilder::RPGNumericPrecondition::display(ostream & o) const
             o << RPGBuilder::getArtificialVariable(LHSVariable);
         }
     }
-    
+
     if (op == VAL::E_GREATER) {
         o << " > ";
     } else if (op == VAL::E_GREATEQ) {
@@ -977,18 +978,18 @@ void RPGBuilder::simplify(pair<list<double>, list<int> > & p)
 #ifdef STOCHASTICDURATIONS
 void RPGBuilder::simplify(pair<list<double>, list<pair<int,PNE*> > > & p)
 {
-    
-    
-    
+
+
+
     list<double>::iterator fItr = p.first.begin();
     const list<double>::iterator fEnd = p.first.end();
     list<double>::iterator constTerm = fEnd;
-    
+
     list<pair<int,PNE*> >::iterator sItr = p.second.begin();
     //const list<double>::iterator sEnd = p.second.end();
-    
+
     while (fItr != fEnd) {
-        
+
         if (sItr->second || sItr->first >= 0 || sItr->first <= -2) {
             ++sItr;
             ++fItr;
@@ -1001,16 +1002,16 @@ void RPGBuilder::simplify(pair<list<double>, list<pair<int,PNE*> > > & p)
                 *constTerm += *fItr;
                 list<double>::iterator fErase = fItr;
                 list<pair<int,PNE*> >::iterator sErase = sItr;
-                
+
                 ++fItr;
                 ++sItr;
                 p.first.erase(fErase);
                 p.second.erase(sErase);
             }
         }
-        
+
     }
-    
+
 }
 #endif
 
@@ -1141,7 +1142,7 @@ bool RPGBuilder::pushInvariantBackThroughStartEffects(const RPGBuilder::RPGNumer
 {
 
     static const bool debug = false;
-    
+
     static const int pneCount = pnes.size();
     map<int, double> lhs;
     double rhs = pre.RHSConstant;
@@ -1150,8 +1151,8 @@ bool RPGBuilder::pushInvariantBackThroughStartEffects(const RPGBuilder::RPGNumer
     if (debug) {
         cout << "Considering invariant " << pre << endl;
     }
-    
-    
+
+
     if (pre.LHSVariable < pneCount) {
         lhs.insert(make_pair(pre.LHSVariable, pre.LHSConstant));
     } else if (pre.LHSVariable < (2 * pneCount)) {
@@ -1208,14 +1209,14 @@ bool RPGBuilder::pushInvariantBackThroughStartEffects(const RPGBuilder::RPGNumer
 
     if (ctsEffs) {
         const int ctsVarCount = ctsEffs->vars.size();
-        
+
         for (int v = 0; v < ctsVarCount; ++v) {
             map<int, double>::iterator lookup = lhs.find(ctsEffs->vars[v]);
             if (lookup != lhs.end()) {
                 if (debug) {
                     cout << "- Relevant CTS effect: increase " << *(getPNE(ctsEffs->vars[v])) << " * #t " << ctsEffs->effects[0][v].constant << endl;
                 }
-                
+
                 map<int, pair<map<int, double>, double> >::iterator moItr = mapOn.find(ctsEffs->vars[v]);
                 if (moItr == mapOn.end()) {
                     map<int, double> localMap;
@@ -1223,8 +1224,8 @@ bool RPGBuilder::pushInvariantBackThroughStartEffects(const RPGBuilder::RPGNumer
                     moItr = mapOn.insert(make_pair(ctsEffs->vars[v], make_pair(localMap, 0.0))).first;
                 }
                 moItr->second.second += EPSILON * ctsEffs->effects[0][v].constant * lookup->second;
-                
-                
+
+
                 unchanged = false;
                 lhs.erase(lookup);
             }
@@ -1235,11 +1236,11 @@ bool RPGBuilder::pushInvariantBackThroughStartEffects(const RPGBuilder::RPGNumer
     const map<int, pair<map<int, double>, double> >::iterator moEnd = mapOn.end();
 
     for (; moItr != moEnd; ++moItr) {
-        
+
         if (debug) {
             cout << "Rewriting due to term on " << *(getPNE(moItr->first)) << endl;
         }
-        
+
         rhs -= moItr->second.second;
 
         if (debug && moItr->second.second != 0.0) {
@@ -1250,7 +1251,7 @@ bool RPGBuilder::pushInvariantBackThroughStartEffects(const RPGBuilder::RPGNumer
                 cout << " - bigger than it was\n";
             }
         }
-        
+
         map<int, double>::iterator mergeItr = moItr->second.first.begin();
         const map<int, double>::iterator mergeEnd = moItr->second.first.end();
 
@@ -1488,7 +1489,7 @@ void RPGBuilder::handleNumericInvariants()
         rpgNumericPreconditions.resize(newPreLimit);
         processedRPGNumericPreconditionsToActions.resize(newPreLimit);
         rpgNumericPreconditionsToActions.resize(newPreLimit);
-        
+
         numericAchievedInLayer.resize(newPreLimit);
         numericAchievedInLayerReset.resize(newPreLimit);
 //      negativeNumericAchievedInLayer.resize(newPreLimit);
@@ -1580,9 +1581,9 @@ void RPGBuilder::makeOneSided(pair<list<double>, list<int> > & LHSvariable, pair
                     if (*ilItr >= 0) {
                         *ilItr += negOffset;
                     } else {
-                        *ilItr -= 16;                        
+                        *ilItr -= 16;
                     }
-                    
+
                     *dlItr = 0.0 - *dlItr;
                     ++dlItr;
                     ++ilItr;
@@ -1644,7 +1645,7 @@ void RPGBuilder::makeOneSided(pair<list<double>, list<int> > & LHSvariable, pair
 void printStackTerm(list<double> & first, list<pair<int,PNE*> > & second)
 {
     static const int pneCount = RPGBuilder::getPNECount();
-    
+
     list<double>::iterator ldItr = first.begin();
     list<double>::iterator ldEnd = first.end();
 
@@ -1652,7 +1653,7 @@ void printStackTerm(list<double> & first, list<pair<int,PNE*> > & second)
         cout << "0.0";
         return;
     }
-    
+
     list<pair<int,PNE*> >::iterator liItr = second.begin();
 
     for (int term = 0; ldItr != ldEnd; ++ldItr, ++liItr, ++term) {
@@ -1665,7 +1666,7 @@ void printStackTerm(list<double> & first, list<pair<int,PNE*> > & second)
                 cout << *(liItr->second);
             } else {
                 if (liItr->first >= 0) {
-                    if (liItr->first >= pneCount) {                    
+                    if (liItr->first >= pneCount) {
                         cout << "-" << *(RPGBuilder::getPNE(liItr->first - pneCount));
                     } else {
                         cout << *(RPGBuilder::getPNE(liItr->first));
@@ -1690,7 +1691,7 @@ void printStackTerm(list<double> & first, list<pair<int,PNE*> > & second)
 void printStackTerm(list<double> & first, list<int> & second)
 {
     static const int pneCount = RPGBuilder::getPNECount();
-    
+
     list<double>::iterator ldItr = first.begin();
     list<double>::iterator ldEnd = first.end();
 
@@ -1698,7 +1699,7 @@ void printStackTerm(list<double> & first, list<int> & second)
         cout << "0.0";
         return;
     }
-    
+
     list<int>::iterator liItr = second.begin();
 
     for (int term = 0; ldItr != ldEnd; ++ldItr, ++liItr, ++term) {
@@ -1708,7 +1709,7 @@ void printStackTerm(list<double> & first, list<int> & second)
         } else {
             if (*ldItr != 1.0) cout << *ldItr << "*";
             if (*liItr >= 0) {
-                if (*liItr >= pneCount) {                    
+                if (*liItr >= pneCount) {
                     cout << "-" << *(RPGBuilder::getPNE(*liItr - pneCount));
                 } else {
                     cout << *(RPGBuilder::getPNE(*liItr));
@@ -1734,13 +1735,13 @@ void RPGBuilder::makeWeightedSum(list<Operand> & formula, pair<list<double>, lis
 {
     pair<list<double>, list<pair<int,PNE*> > > tmp;
     makeDurationWeightedSum(formula,tmp);
-    
+
     list<double>::const_iterator wItr = tmp.first.begin();
-    
+
     list<pair<int,PNE*> >::const_iterator tItr = tmp.second.begin();
     const list<pair<int,PNE*> >::const_iterator tEnd = tmp.second.end();
-    
-    for (; tItr != tEnd; ++tItr) {        
+
+    for (; tItr != tEnd; ++tItr) {
         if (tItr->second) {
             assert(EFT(tItr->second->getHead())->isStatic());
             result.first.push_back(*wItr * EFT(tItr->second->getHead())->getInitial(tItr->second->begin(), tItr->second->end()).second);
@@ -1750,7 +1751,7 @@ void RPGBuilder::makeWeightedSum(list<Operand> & formula, pair<list<double>, lis
             result.second.push_back(tItr->first);
         }
     }
-    
+
     simplify(result);
 }
 
@@ -1778,7 +1779,7 @@ typedef pair<list<double>, list<int> > FormulaStackEntry;
 
 pair<bool,double> entryIsConst(const FormulaStackEntry & e) {
     if (e.first.size() == 1 && e.second.front() == -1) {
-        return make_pair(true, e.first.front());  
+        return make_pair(true, e.first.front());
     } else {
         return make_pair(false, std::numeric_limits< double >::signaling_NaN());
     }
@@ -1793,7 +1794,7 @@ void RPGBuilder::makeDurationWeightedSum(list<Operand> & formula, pair<list<doub
     const bool stackDebug = false;
 
     if (stackDebug) cout << "Making weighted sum\n";
-    
+
     if (formula.empty()) {
         if (stackDebug) {
             cout << "\tEmpty formula - returning 0.0\n";
@@ -1804,7 +1805,7 @@ void RPGBuilder::makeDurationWeightedSum(list<Operand> & formula, pair<list<doub
         result = toReturn;
         return;
     }
-    
+
     list<FormulaStackEntry> formulaStack;
 
     list<Operand>::iterator opItr = formula.begin();
@@ -1907,7 +1908,7 @@ void RPGBuilder::makeDurationWeightedSum(list<Operand> & formula, pair<list<doub
                     cout << "\n";
                 }
             }
-            
+
             const bool firstIsConst = entryIsConst(oldFront).first;
             const bool secondIsConst = entryIsConst(oldSecondFront).first;
 
@@ -2012,7 +2013,7 @@ void RPGBuilder::makeDurationWeightedSum(list<Operand> & formula, pair<list<doub
                     }
                     theOp = o.str();
                     #endif
-                    
+
                 }
                 postmortem_noQuadratic(theOp);
             }
@@ -2134,7 +2135,7 @@ void RPGBuilder::makeDurationWeightedSum(list<Operand> & formula, pair<list<doub
             formulaStack.front().second.push_front(currOperand.fluentValue);
             #endif
             break;
-        }        
+        }
         #ifdef STOCHASTICDURATIONS
         case RPGBuilder::NE_STOCHASTIC_DURATION_TERM: {
             if (stackDebug) {
@@ -2144,7 +2145,7 @@ void RPGBuilder::makeDurationWeightedSum(list<Operand> & formula, pair<list<doub
             formulaStack.front().first.push_front(1.0);
             formulaStack.front().second.push_front(make_pair(-1, currOperand.durationVar));
             break;
-        }            
+        }
         #endif
         case RPGBuilder::NE_VIOLATION: {
             map<string, int>::iterator vID = prefNameToID.find(currOperand.isviolated);
@@ -2327,7 +2328,7 @@ bool RPGBuilder::processPreconditions(set<ArtificialVariable> & artificialVariab
                     {
                         cout << "\t";
                         printStackTerm(lhsItr->first, lhsItr->second);
-                        
+
                     }
                     if (*opItr == VAL::E_GREATER) {
                         cout << " > ";
@@ -2335,7 +2336,7 @@ bool RPGBuilder::processPreconditions(set<ArtificialVariable> & artificialVariab
                         cout << " >= ";
                     }
                     {
-                        printStackTerm(rhsItr->first, rhsItr->second);                        
+                        printStackTerm(rhsItr->first, rhsItr->second);
                     }
                     cout << "\n";
                 }
@@ -2456,7 +2457,7 @@ bool RPGBuilder::processPreconditions(set<ArtificialVariable> & artificialVariab
                         if (lConst < rConst) {
                             return false;
                         }
-                    } 
+                    }
                 }
 
                 if (lIsConst) {
@@ -2512,7 +2513,7 @@ bool RPGBuilder::processPreconditions(set<ArtificialVariable> & artificialVariab
     if (debugRPGNum) {
         cout << "Action has " << toIncrement << " numeric preconditions\n";
     }
-    
+
     return true;
 }
 
@@ -2546,13 +2547,13 @@ void RPGBuilder::buildRPGNumericPreconditions()
     for (int i = 0; i < offset; ++i) localMaxNeed[i] = -DBL_MAX;
 
     for (int i = 0; i < opCount; ++i) {
- 
+
         if (rogueActions[i]) {
             continue;
         }
-        
+
         bool contradictoryPreconditions = false;
-        
+
         for (int pass = 0; pass < 3; ++pass) {
 
             vector<list<NumericPrecondition> > * actionsToNumericPreconditions ;
@@ -2592,7 +2593,7 @@ void RPGBuilder::buildRPGNumericPreconditions()
             }
             };
 
-            
+
 
             if (!processPreconditions(artificialVariableSet, rpgNumericPreconditionSet, (*actionsToNumericPreconditions)[i], (*actionsToRPGNumericPreconditions)[i], (*initialUnsatisfiedNumericPreconditions)[i], negOffset, offset, precCount, avCount, localMaxNeed, i, passTimeSpec)) {
                 contradictoryPreconditions = true;
@@ -2658,7 +2659,7 @@ void RPGBuilder::buildRPGNumericPreconditions()
                 }
             }
         }
-        
+
         if (contradictoryPreconditions) {
             pruneIrrelevant(i);
         }
@@ -2676,7 +2677,7 @@ void RPGBuilder::buildRPGNumericPreconditions()
         const list<NumericPrecondition>::iterator goalNumEnd = numericGoals.end();
 
         list<double>::const_iterator goalDeadItr = numericGoalDeadlines.begin();
-        
+
         for (; goalNumItr != goalNumEnd; ++goalNumItr, ++goalDeadItr) {
 
             list<NumericPrecondition> justOne;
@@ -2686,7 +2687,7 @@ void RPGBuilder::buildRPGNumericPreconditions()
             list<int> dest;
 
             if (processPreconditions(artificialVariableSet, rpgNumericPreconditionSet, justOne, dest, unsat, negOffset, offset, precCount, avCount, localMaxNeed, -1, VAL::E_AT)) {
-                
+
 
                 const int destSize = dest.size();
 
@@ -2699,7 +2700,7 @@ void RPGBuilder::buildRPGNumericPreconditions()
                     numericRPGGoals.push_back(pair<int, int>(dest.front(), -1));
                     rpgNumericGoalDeadlines.push_back(*goalDeadItr);
                 }
-                
+
             } else {
                 cout << "Problem cannot be solved: a numeric goal " << *goalNumItr << " evaluates to false\n";
                 exit(0);
@@ -2825,7 +2826,7 @@ void RPGBuilder::buildRPGNumericEffects()
         if (rogueActions[act]) {
             continue;
         }
-        
+
         linearDiscretisation[act] = buildLE(act);
 
         bool doingMainEffects = true;
@@ -3004,7 +3005,7 @@ void RPGBuilder::buildRPGNumericEffects()
                 ++ceItr;
                 ++prcItr;
             }
-            
+
         }
 
         rpgNumericEffects = vector<RPGNumericEffect>(effID);
@@ -3042,19 +3043,19 @@ void RPGBuilder::buildMetric(VAL::metric_spec * ms)
     WhereAreWeNow = PARSE_UNKNOWN;
     theMetric->weights = result.first;
     theMetric->variables = result.second;
-    
+
     const int varCount = getPNECount();
-    
+
     list<int>::iterator varItr = theMetric->variables.begin();
     const list<int>::iterator varEnd = theMetric->variables.end();
-    
+
     list<double>::iterator wItr = theMetric->weights.begin();
-        
+
     while (varItr != varEnd) {
         if (*varItr == -1) {
             const list<int>::iterator varPrev = varItr; ++varItr;
             const list<double>::iterator wPrev = wItr; ++wItr;
-            
+
             theMetric->variables.erase(varPrev);
             theMetric->weights.erase(wPrev);
         } else if (*varItr >= 0) {
@@ -3068,14 +3069,14 @@ void RPGBuilder::buildMetric(VAL::metric_spec * ms)
         } else {
             if (*varItr <= -16) {
                 *varItr += 16;
-                metricVars.insert(*varItr + 16);                    
+                metricVars.insert(*varItr + 16);
                 if (*wItr != 0.0) *wItr = -*wItr;
             } else {
                 metricVars.insert(*varItr);
             }
             ++varItr; ++wItr;
-                            
-        }                                                
+
+        }
     }
 
 }
