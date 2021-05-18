@@ -1,3 +1,4 @@
+#include <unistd.h>
 #include "FFSolver.h"
 #include "temporalconstraints.h"
 #include "globals.h"
@@ -22,7 +23,7 @@ namespace Planner
 {
 
 Solution FF::workingBestSolution;
-    
+
 list<pair<double, list<ActionSegment> > > FFcache_relaxedPlan;
 list<ActionSegment> FFcache_helpfulActions;
 int FFcache_h;
@@ -68,10 +69,10 @@ Solution::Solution()
 
 void Solution::update(const std::list< FFEvent >& newPlan, const Planner::TemporalConstraints*const newCons, const double& newMetric)
 {
-    
+
     delete plan;
     delete constraints;
-    
+
     plan = new list<FFEvent>(newPlan);
     if (newCons) {
         constraints = new TemporalConstraints(*newCons);
@@ -88,9 +89,9 @@ using std::endl;
 
 double getMakespan(const list<FFEvent> & plan) {
     double toReturn = 0.0;
-            
+
     list<FFEvent>::const_iterator pItr = plan.begin();
-    const list<FFEvent>::const_iterator pEnd = plan.end();            
+    const list<FFEvent>::const_iterator pEnd = plan.end();
     double t;
     for (; pItr != pEnd; ++pItr) {
         #ifdef STOCHASTICDURATIONS
@@ -100,15 +101,15 @@ double getMakespan(const list<FFEvent> & plan) {
         #endif
         if (t > toReturn) {
             toReturn = t;
-        }                                                
+        }
     }
-    return toReturn;   
+    return toReturn;
 }
 double FF::evaluateMetric(const MinimalState & theState, const list<FFEvent> & plan, const bool printMetric)
 {
- 
+
     RPGBuilder::Metric * const theMetric = RPGBuilder::getMetric();
-    
+
     if (!theMetric) {
         if (plan.empty()) {
             if (printMetric) {
@@ -120,7 +121,7 @@ double FF::evaluateMetric(const MinimalState & theState, const list<FFEvent> & p
                 cout << "; No metric specified - using makespan\n";
             }
             return getMakespan(plan);
-        }     
+        }
     }
 
     double toReturn = 0.0;
@@ -128,10 +129,10 @@ double FF::evaluateMetric(const MinimalState & theState, const list<FFEvent> & p
     const int pneCount = RPGBuilder::getPNECount();
     list<int>::const_iterator vItr = theMetric->variables.begin();
     const list<int>::const_iterator vEnd = theMetric->variables.end();
-    
+
     list<double>::const_iterator wItr = theMetric->weights.begin();
     const list<double>::const_iterator wEnd = theMetric->weights.end();
-    
+
     for (; wItr != wEnd; ++wItr, ++vItr) {
         if (*vItr < 0) {
             toReturn += getMakespan(plan) * *wItr;
@@ -146,7 +147,7 @@ double FF::evaluateMetric(const MinimalState & theState, const list<FFEvent> & p
             toReturn += value * *wItr;
         }
     }
-    
+
     return toReturn;
 }
 
@@ -157,55 +158,55 @@ bool exceedsSimpleMetricBound(const MinimalState & theState, const double & make
     if (!Globals::optimiseSolutionQuality) {
         return false;
     }
-    
+
     if (Globals::bestSolutionQuality == -DBL_MAX) {
         if (verbose) {
             cout << "[No incumbent solution]"; cout.flush();
         }
-        
+
         return false;
     }
-    
-        
+
+
     RPGBuilder::Metric * const theMetric = RPGBuilder::getMetric();
 
     double toReturn = 0.0;
-    
+
     if (!theMetric) {
         // assume metric is minimise makespan
         toReturn = -makespan;
-        
+
     } else {
         static bool knowThatCostsAreMonotonic = false;
-            
+
         if (!knowThatCostsAreMonotonic) {
             NumericAnalysis::findWhetherTheMetricIsMonotonicallyWorsening();
             knowThatCostsAreMonotonic = true;
         }
-        
+
         if (!NumericAnalysis::theMetricIsMonotonicallyWorsening()) {
             if (verbose) {
                 cout << "[Metric is non-monotonic]"; cout.flush();
             }
-            
+
             return false;
         }
-        
 
-        
+
+
         const int pneCount = RPGBuilder::getPNECount();
         list<int>::const_iterator vItr = theMetric->variables.begin();
         const list<int>::const_iterator vEnd = theMetric->variables.end();
-        
+
         list<double>::const_iterator wItr = theMetric->weights.begin();
         const list<double>::const_iterator wEnd = theMetric->weights.end();
-        
+
         for (; wItr != wEnd; ++wItr, ++vItr) {
             if (*vItr < 0) {
                 if (*wItr < 0.0) {
                     if (verbose) {
                         cout << "[Would need upper-bound on makespan]"; cout.flush();
-                    }                
+                    }
                     return false;
                 } else {
                     toReturn += makespan * *wItr;
@@ -216,14 +217,14 @@ bool exceedsSimpleMetricBound(const MinimalState & theState, const double & make
             } else {
                 const double value = -theState.secondMin[*vItr];
                 toReturn += value * *wItr;
-            }        
+            }
         }
-        
+
         if (theMetric->minimise && toReturn != 0.0) {
             toReturn = -toReturn;
         }
     }
-            
+
     if (toReturn <= Globals::bestSolutionQuality) {
         //cout << "Bound exceeded: this state has cost " << toReturn << " vs best " << Globals::bestSolutionQuality << endl;
         if (Globals::globalVerbosity & 1) {
@@ -233,16 +234,16 @@ bool exceedsSimpleMetricBound(const MinimalState & theState, const double & make
         if (verbose) {
             cout << "[Exceeds metric]"; cout.flush();
         }
-                        
+
         return true;
     }
-    
+
     if (verbose) {
         cout << "[" << toReturn << " > " << Globals::bestSolutionQuality << "]";
         cout.flush();
     }
-                
-    
+
+
     return false;
 }
 
@@ -256,39 +257,39 @@ bool FF::carryOnSearching(const MinimalState & theState,  const list<FFEvent> & 
         }
         return false;
     }
-    
+
     RPGBuilder::Metric * const theMetric = RPGBuilder::getMetric();
-    
+
     const double realMetric = evaluateMetric(theState,plan,false);
-        
+
     double metric = realMetric;
-    
+
     if ((!theMetric || theMetric->minimise) && metric != 0.0) {
         metric = -metric;
     }
-    
+
     if (metric > Globals::bestSolutionQuality) {
         Globals::bestSolutionQuality = metric;
-        
+
         if (Globals::globalVerbosity & 1) {
             cout << "g"; cout.flush();
         }
         workingBestSolution.update(plan, theState.temporalConstraints, evaluateMetric(theState, plan, false));
-        
+
         cout << endl << "; Plan found with metric " << realMetric << endl;
         cout << "; States evaluated so far: " << RPGHeuristic::statesEvaluated << endl;
-        FFEvent::printPlan(plan);        
-        
+        FFEvent::printPlan(plan);
+
         RPGBuilder::getHeuristic()->metricHasChanged();
-        
+
         bool metricIsMinimiseMakespan = false;
-        
+
         if (!theMetric) {
             metricIsMinimiseMakespan = true;
         } else if (theMetric->minimise && theMetric->variables.size() == 1 && theMetric->variables.front() < 0) {
             metricIsMinimiseMakespan = true;
-        } 
-        
+        }
+
         if (metricIsMinimiseMakespan) {
             RPGBuilder::updateGoalDeadlines(-metric);
             #ifdef STOCHASTICDURATIONS
@@ -297,9 +298,9 @@ bool FF::carryOnSearching(const MinimalState & theState,  const list<FFEvent> & 
             }
             #endif
         }
-        
+
     }
-    
+
     return true;
 }
 
@@ -309,9 +310,9 @@ bool FF::carryOnSearching(const MinimalState & theState,  const list<FFEvent> & 
 {
     if (Globals::globalVerbosity & 1) {
         cout << "g"; cout.flush();
-    }   
+    }
     workingBestSolution.update(plan, theState.temporalConstraints, evaluateMetric(theState, plan, false));
-    
+
     return false;
 }
 
@@ -320,9 +321,9 @@ bool FF::carryOnSearching(const MinimalState & theState,  const list<FFEvent> & 
 
 ExtendedMinimalState & ExtendedMinimalState::operator=(const ExtendedMinimalState & e)
 {
-    delete decorated;    
+    delete decorated;
     decorated = new MinimalState(*(e.decorated));
-    
+
     startEventQueue = e.startEventQueue;
     timeStamp = e.timeStamp;
     stepBeforeTIL = e.stepBeforeTIL;
@@ -517,7 +518,7 @@ int compareAnnotations(const map<int, PropositionAnnotation> & a, const map<int,
 #ifdef TOTALORDERSTATES
 int compareAnnotations(const set<int> & a, const set<int> & b)
 {
-    return compareSets(a,b);    
+    return compareSets(a,b);
 }
 #endif
 
@@ -544,7 +545,7 @@ int oldCompareSets(const map<int, PropositionAnnotation> & a, const map<int, Pro
 
     if (aItr == aEnd && bItr != bEnd) return -1;
     if (aItr != aEnd && bItr == bEnd) return 1;
-        
+
     return 0;
 }
 
@@ -756,7 +757,7 @@ int compareNonDominatedVecs(const vector<double> & a, const vector<double> & b)
     if (!aSize && !bSize) return 0;
     if (aSize < bSize) return 1;
     if (bSize > aSize) return -1;
-    
+
     double av, bv;
     for (int i = 0; i < aSize; ++i) {
         if (nonDominatedFluent[i]) {
@@ -766,7 +767,7 @@ int compareNonDominatedVecs(const vector<double> & a, const vector<double> & b)
             if (av > bv) return -1;
         }
     }
-    
+
     return 0;
 }
 
@@ -801,25 +802,25 @@ int compareNonDominatedVecs(const vector<double> & a, const vector<double> & b)
 
 bool propAndNonDominatedVariableLessThan(const ExtendedMinimalState & ae, const ExtendedMinimalState & be)
 {
-    
+
     const MinimalState & a = ae.getInnerState();
     const MinimalState & b = be.getInnerState();
-    
+
 #ifdef DOMHASHDEBUG
     const bool shdVerbose = true;
-    
+
     if (shdVerbose) {
         cout << "Seeing if " << &ae << " < " << &be;
         cout.flush();
     }
 #endif
-    
+
     const int csVal = CSBase::compareSets(a.first, b.first);
 #ifdef DOMHASHDEBUG
     assert(-1*csVal == CSBase::compareSets(b.first, a.first));
 #endif
 
-    if (csVal > 0) {        
+    if (csVal > 0) {
 #ifdef DOMHASHDEBUG
         if (shdVerbose) {
             cout << " - yes 1\n";
@@ -834,7 +835,7 @@ bool propAndNonDominatedVariableLessThan(const ExtendedMinimalState & ae, const 
 #endif
         return false;
     }
-    
+
     const int cv1Val = CSBase::compareNonDominatedVecs(a.secondMin, b.secondMin);
 #ifdef DOMHASHDEBUG
     assert(-1 * cv1Val == CSBase::compareNonDominatedVecs(b.secondMin, a.secondMin));
@@ -919,7 +920,7 @@ bool propAndNonDominatedVariableLessThan(const ExtendedMinimalState & ae, const 
 
     return false;
 
-    
+
 }
 
 bool baseLessThan(const ExtendedMinimalState & ae, const ExtendedMinimalState & be)
@@ -1546,7 +1547,7 @@ public:
                 }
             }
         }
-        
+
         q.push_back(p);
 
     }
@@ -1591,27 +1592,27 @@ FF::HTrio FF::calculateHeuristicAndSchedule(ExtendedMinimalState & theState, Ext
     LPScheduler tryToSchedule(theState.getInnerState(), header, now, stepID, theState.startEventQueue, incrementalData, theState.entriesForAction, (prevState ? &prevState->getInnerState().secondMin : 0), (prevState ? &prevState->getInnerState().secondMax : 0), &(theState.tilComesBefore), scheduleToMetric);
 
     if (scheduleToMetric) {
-        HTrio toReturn(0, 0.0, 0.0, theState.getInnerState().planLength - theState.getInnerState().actionsExecuting, "Evaluated Successfully");        
-        return toReturn;        
+        HTrio toReturn(0, 0.0, 0.0, theState.getInnerState().planLength - theState.getInnerState().actionsExecuting, "Evaluated Successfully");
+        return toReturn;
     }
-    
+
     if (!tryToSchedule.isSolved()) return HTrio(-1.0, DBL_MAX, DBL_MAX, INT_MAX, "LP deemed action choice invalid");
 
     vector<double> timeAtWhichValueIsDefined;
-    
+
     tryToSchedule.updateStateFluents(theState.getEditableInnerState().secondMin, theState.getEditableInnerState().secondMax, timeAtWhichValueIsDefined);
 
     vector<double> extrapolatedMin, extrapolatedMax;
-    
-    if (LPScheduler::workOutFactLayerZeroBoundsStraightAfterRecentAction) {   
+
+    if (LPScheduler::workOutFactLayerZeroBoundsStraightAfterRecentAction) {
         extrapolatedMin = theState.getEditableInnerState().secondMin;
         extrapolatedMax = theState.getEditableInnerState().secondMax;
         tryToSchedule.extrapolateBoundsAfterRecentAction(&(theState.startEventQueue), extrapolatedMin, extrapolatedMax, timeAtWhichValueIsDefined);
     }
-    
-    
+
+
     if (skipRPG) {
-        if (LPScheduler::workOutFactLayerZeroBoundsStraightAfterRecentAction) {   
+        if (LPScheduler::workOutFactLayerZeroBoundsStraightAfterRecentAction) {
             theState.getEditableInnerState().secondMin.swap(extrapolatedMin);
             theState.getEditableInnerState().secondMax.swap(extrapolatedMax);
         }
@@ -1697,13 +1698,13 @@ FF::HTrio FF::calculateHeuristicAndSchedule(ExtendedMinimalState & theState, Ext
     }
 
 
-    if (LPScheduler::workOutFactLayerZeroBoundsStraightAfterRecentAction) {   
+    if (LPScheduler::workOutFactLayerZeroBoundsStraightAfterRecentAction) {
         theState.getEditableInnerState().secondMin.swap(extrapolatedMin);
         theState.getEditableInnerState().secondMax.swap(extrapolatedMax);
     }
 
-    HTrio toReturn(h, makespan, makespanEstimate, theState.getInnerState().planLength - theState.getInnerState().actionsExecuting, "Evaluated Successfully");    
-    
+    HTrio toReturn(h, makespan, makespanEstimate, theState.getInnerState().planLength - theState.getInnerState().actionsExecuting, "Evaluated Successfully");
+
     return toReturn;
 }
 
@@ -1716,13 +1717,13 @@ FF::HTrio FF::calculateHeuristicAndCompressionSafeSchedule(ExtendedMinimalState 
 //  LPScheduler tryToSchedule(header, now, theState.entriesForAction, (prevState ? &prevState->secondMin : 0), (prevState ? &prevState->secondMax : 0));
 
     CompressionSafeScheduler::assignTimestamps(theState.getInnerState(), header, now);
-    
+
     vector<double> timeAtWhichValueIsDefined;
 
     if (LPScheduler::workOutFactLayerZeroBoundsStraightAfterRecentAction) {
-        timeAtWhichValueIsDefined.resize(theState.getInnerState().secondMin.size(), -1.0);        
+        timeAtWhichValueIsDefined.resize(theState.getInnerState().secondMin.size(), -1.0);
     }
-    
+
     if (skipRPG) {
         return HTrio(-2.0, -2.0, -2.0, INT_MAX, "skipRPG specified - skipping RPG evaluation");
     }
@@ -1748,8 +1749,8 @@ FF::HTrio FF::calculateHeuristicAndCompressionSafeSchedule(ExtendedMinimalState 
 
     if (h < 0) return HTrio(-1.0, DBL_MAX, DBL_MAX, INT_MAX, "RPG heuristic detected a deadend");
 
-    HTrio toReturn(h, makespan, makespanEstimate, theState.getInnerState().planLength - theState.getInnerState().actionsExecuting, "Compression-Safe Evaluated Successfully");    
-    
+    HTrio toReturn(h, makespan, makespanEstimate, theState.getInnerState().planLength - theState.getInnerState().actionsExecuting, "Compression-Safe Evaluated Successfully");
+
     return toReturn;
 }
 
@@ -1866,22 +1867,22 @@ ExtendedMinimalState * FF::applyActionToState(ActionSegment & actionToApply, con
 
     {
         set<int> checked;
-        
+
         // check numeric invariants are all satisfied
         list<StartEvent>::const_iterator seqItr = toReturn->startEventQueue.begin();
-        const list<StartEvent>::const_iterator seqEnd = toReturn->startEventQueue.end();       
-        
+        const list<StartEvent>::const_iterator seqEnd = toReturn->startEventQueue.end();
+
         for (; seqItr != seqEnd; ++seqItr) {
             const list<int> & numInvs = RPGBuilder::getInvariantNumerics()[seqItr->actID];
-            
+
             list<int>::const_iterator niItr = numInvs.begin();
             const list<int>::const_iterator niEnd = numInvs.end();
-            
+
             for (; niItr != niEnd; ++niItr) {
                 if (checked.insert(*niItr).second) {
                     const RPGBuilder::RPGNumericPrecondition & currPre = RPGBuilder::getNumericPreTable()[*niItr];
                     if (!currPre.isSatisfiedWCalculate(toReturn->getInnerState().secondMin, toReturn->getInnerState().secondMax)) {
-                        break;                        
+                        break;
                     }
                 }
             }
@@ -1889,12 +1890,12 @@ ExtendedMinimalState * FF::applyActionToState(ActionSegment & actionToApply, con
                 break;
             }
         }
-        
+
         if (seqItr != seqEnd) {
             delete toReturn;
             return 0;
         }
-        
+
     }
 
     return toReturn;
@@ -1902,24 +1903,24 @@ ExtendedMinimalState * FF::applyActionToState(ActionSegment & actionToApply, con
 
 bool FF::stateHasProgressedBeyondItsParent(const ActionSegment & theAction, const ExtendedMinimalState & parent, const ExtendedMinimalState & child)
 {
-    
+
     if (theAction.second == VAL::E_AT_END || theAction.second == VAL::E_AT) {
         // ending an action or applying a TIL can be a good thing for temporal reasons
         // so assume it is, for completeness
         return true;
     }
-    
+
     {
         // Check one: if child contains a fact that parent does not, progress has been made
         const StateFacts & childFacts = child.getInnerState().first;
         const StateFacts & parentFacts = parent.getInnerState().first;
-        
+
         StateFacts::const_iterator cfItr = childFacts.begin();
         const StateFacts::const_iterator cfEnd = childFacts.end();
-        
+
         StateFacts::const_iterator pfItr = parentFacts.begin();
         const StateFacts::const_iterator pfEnd = parentFacts.end();
-        
+
         while (cfItr != cfEnd && pfItr != pfEnd) {
             if (FACTA(pfItr) < FACTA(cfItr)) {
                 ++pfItr;
@@ -1931,35 +1932,35 @@ bool FF::stateHasProgressedBeyondItsParent(const ActionSegment & theAction, cons
                ++cfItr;
             }
         }
-        
+
         if (cfItr != cfEnd) {
             // still have facts left in the child - so it subsumes the parents facts
             return true;
         }
-        
-        
+
+
     }
-    
+
     const list<int> & numStartEffs = RPGBuilder::getStartEffNumerics()[theAction.first->getID()];
     // If the action has numeric start effects...
     if (!numStartEffs.empty()) {
-        
+
         // Check two: if a child contains a better value of a numeric variable, progress has been made
         const vector<NumericAnalysis::dominance_constraint> & dom = NumericAnalysis::getDominanceConstraints();
-        
+
         list<int>::const_iterator effIdIterator = numStartEffs.begin();
         const list<int>::const_iterator effIdEnd = numStartEffs.end();
-        
+
         for (; effIdIterator != effIdEnd; ++effIdIterator) {
             const int v = RPGBuilder::getNumericEff()[*effIdIterator].fluentIndex;
-            
+
             const double & childLB = child.getInnerState().secondMin[v];
             const double & childUB = child.getInnerState().secondMax[v];
 
             const double & parentLB = parent.getInnerState().secondMin[v];
             const double & parentUB = parent.getInnerState().secondMax[v];
-            
-            
+
+
             switch (dom[v]) {
                 case NumericAnalysis::E_NODOMINANCE:
                 {
@@ -1976,7 +1977,7 @@ bool FF::stateHasProgressedBeyondItsParent(const ActionSegment & theAction, cons
                         return true;
                     }
                     break;
-                }                    
+                }
                 case NumericAnalysis::E_BIGGERISBETTER:
                 {
                     if (parentLB < childLB || parentUB < childUB) {
@@ -1994,14 +1995,14 @@ bool FF::stateHasProgressedBeyondItsParent(const ActionSegment & theAction, cons
                     // TODO: check optimisation direction, only count beneficial metric change as useful
                     return true;
                 }
-                
+
             }
-        }                
+        }
     }
-    
+
     // If the code gets this far, there are no new facts, and no better numerics.  The only hope
     // is that it's the start of a temporal action with some end effects we might like.
-    
+
     if (!RPGBuilder::getRPGDEs(theAction.first->getID()).empty()) {
         if (!RPGBuilder::getEndPropositionAdds()[theAction.first->getID()].empty()) {
             // Adds some facts at the end - might be useful
@@ -2009,7 +2010,7 @@ bool FF::stateHasProgressedBeyondItsParent(const ActionSegment & theAction, cons
         }
         if (!RPGBuilder::getEndEffNumerics()[theAction.first->getID()].empty()) {
             // TODO: check whether these are improving effects w.r.t. dominance constraints
-            // For now, just return true as they might be.            
+            // For now, just return true as they might be.
             return true;
         }
 
@@ -2017,7 +2018,7 @@ bool FF::stateHasProgressedBeyondItsParent(const ActionSegment & theAction, cons
             return true;
         }
     }
-    
+
     // Either the action was a non-temporal action that did nothing interesting; or it was the start
     // of a temporal action that did nothing interesting, with an end that was going to do nothing
     // interesting.
@@ -2082,14 +2083,14 @@ void FF::evaluateStateAndUpdatePlan(auto_ptr<SearchQueueItem> & succ, ExtendedMi
 {
 
     #ifdef POPF3ANALYSIS
-    
+
     if (Globals::optimiseSolutionQuality && exceedsSimpleMetricBound(state.getInnerState(),succ->heuristicValue.makespan,false)) {
-        
+
         succ->heuristicValue = HTrio(-1.0, DBL_MAX, DBL_MAX, INT_MAX, "Exceeded incumbent solution cost");
         return;
     }
     #endif
-    
+
     list<ActionSegment> helpfulActions;
 
 
@@ -2180,9 +2181,9 @@ void FF::evaluateStateAndUpdatePlan(auto_ptr<SearchQueueItem> & succ, ExtendedMi
     if (eventTwoDefined) nowList.push_back(extraEventTwo);
 
     #ifdef STOCHASTICDURATIONS
-    
+
     bool isAStochasticGoalState = false;
-    
+
     if (actID.second == VAL::E_AT_END) {
         if (!durationManager->updateTimestampsOfNewPlanStep(prevState->getInnerState(), state.getEditableInnerState(), succ->plan, reusedEndEvent, 0, stepID, isAStochasticGoalState)) {
             succ->heuristicValue = HTrio(-1.0, DBL_MAX, DBL_MAX, INT_MAX, "Exceeded stochastic deadline");
@@ -2205,18 +2206,18 @@ void FF::evaluateStateAndUpdatePlan(auto_ptr<SearchQueueItem> & succ, ExtendedMi
         }
     }
     #endif
-    
+
     assert(stepID != -1);
 
     HTrio h1;
-    
+
     if (FF::allowCompressionSafeScheduler) {
         h1 = calculateHeuristicAndCompressionSafeSchedule(state, prevState, goals, goalFluents, helpfulActions, succ->plan, nowList, stepID, justApplied, tilFrom);
     } else {
         h1 = calculateHeuristicAndSchedule(state, prevState, goals, goalFluents, incrementalData, helpfulActions, succ->plan, nowList, stepID, true, justApplied, tilFrom);
     }
-    
-    
+
+
     if (eventTwoDefined) {
         extraEventTwo = nowList.back();
         nowList.pop_back();
@@ -2234,11 +2235,11 @@ void FF::evaluateStateAndUpdatePlan(auto_ptr<SearchQueueItem> & succ, ExtendedMi
     if (actID.second == VAL::E_AT_START) {
         if (   !RPGBuilder::getRPGDEs(actID.first->getID()).empty()
             && TemporalAnalysis::canSkipToEnd(actID.first->getID())) { // if it's a compression-safe temporal action
-            
+
             const int endStepID = state.getInnerState().planLength - 1;
-            
+
             state.getEditableInnerState().updateWhenEndOfActionIs(actID.first->getID(), endStepID, extraEventTwo.lpMinTimestamp);
-            
+
         }
     }
     #endif
@@ -2499,7 +2500,7 @@ bool FF::checkTemporalSoundness(ExtendedMinimalState & theState, const ActionSeg
     }
 
     const VAL::time_spec ts = actionSeg.second;
-    
+
     if (ts == VAL::E_AT_START) {
 
         const int actID = actionSeg.first->getID();
@@ -2527,7 +2528,7 @@ bool FF::checkTemporalSoundness(ExtendedMinimalState & theState, const ActionSeg
 
         if (tsDebug) cout << "Now " << moveOn << " since start of new action " << *(actionSeg.first) << "\n";
 
-        
+
         theState.timeStamp += moveOn;
 
         if (theState.getInnerState().nextTIL < tilCount) {
@@ -2572,9 +2573,9 @@ bool FF::checkTemporalSoundness(ExtendedMinimalState & theState, const ActionSeg
 
         if (!nonTemporal && !TemporalAnalysis::canSkipToEnd(actionSeg.first->getID()) && LPScheduler::optimiseOrdering) {
             const int endOfNewStep = theState.getInnerState().planLength - 1;
-            
+
             TemporalConstraints * const cons = theState.getInnerState().temporalConstraints;
-            
+
             {
                 list<StartEvent>::reverse_iterator tsiItr = theState.startEventQueue.rbegin();
                 const list<StartEvent>::reverse_iterator tsiEnd = theState.startEventQueue.rend();
@@ -2646,12 +2647,12 @@ bool FF::checkTemporalSoundness(ExtendedMinimalState & theState, const ActionSeg
                                         tsiItr->endMustComeAfterPair(eca.stepID);
                                         precedes = true;
                                         cons->addOrdering(tsiItr->stepID + 1, endOfNewStep, true);
-                                        
+
                                         if (tsDebug) {
                                             cout << COLOUR_light_green << "End of action just started (" << endOfNewStep << ") must come after " << tsiItr->stepID + 1 << ", to avoid deleting one of its invariants\n" << COLOUR_default;
                                         }
-                                        
-                                        
+
+
                                         break;
                                     }
                                 }
@@ -2676,12 +2677,12 @@ bool FF::checkTemporalSoundness(ExtendedMinimalState & theState, const ActionSeg
                                             eca.endMustComeAfter(tsiItr->stepID);
                                             tsiItr->endMustComeAfterPair(eca.stepID);
                                             cons->addOrdering(tsiItr->stepID + 1, endOfNewStep, true);
-                                            
+
                                             if (tsDebug) {
                                                 cout << COLOUR_light_green << "End of action just started (" << endOfNewStep << ") must come after " << tsiItr->stepID + 1 << ", to avoid deleting one if its one-shot end preconditions.\n" << COLOUR_default;
                                             }
-                                            
-                                            
+
+
                                             break;
                                         }
                                     }
@@ -2723,7 +2724,7 @@ bool FF::checkTemporalSoundness(ExtendedMinimalState & theState, const ActionSeg
                                         if (tsDebug) {
                                             cout << COLOUR_light_green << "End of action just started (" << endOfNewStep << ") must come before " << tsiItr->stepID + 1 << ", to avoid an invariant violation\n" << COLOUR_default;
                                         }
-                                        
+
                                         break;
                                     }
                                 }
@@ -2755,7 +2756,7 @@ bool FF::checkTemporalSoundness(ExtendedMinimalState & theState, const ActionSeg
                                         if (tsDebug) {
                                             cout << COLOUR_light_green << "End of action just started (" << endOfNewStep << ") must come before " << tsiItr->stepID + 1 << ", to avoid losing a one-shot end precondition\n" << COLOUR_default;
                                         }
-                                        
+
                                         break;
                                     }
                                 }
@@ -2770,11 +2771,11 @@ bool FF::checkTemporalSoundness(ExtendedMinimalState & theState, const ActionSeg
         }
 
     } else if (ts == VAL::E_OVER_ALL) {
-        
+
         std::cerr << "Internal error: should not be able to apply actions with 'over all' time specifier\n";
         exit(1);
-        
-        
+
+
     } else if (ts == VAL::E_AT_END) {
 
         if (tsDebug) cout << "Considering end of " << *(actionSeg.first) << "\n";
@@ -3312,34 +3313,34 @@ void reorderNonDeletorsFirst(list<ActionSegment > & applicableActions)
     applicableActions.clear();
 
     list<set<int> > preconditionFacts;
-    
+
     {
-        
+
         list<ActionSegment >::iterator itr = tmp.begin();
         const list<ActionSegment >::iterator itrEnd = tmp.end();
-     
+
         for (; itr != itrEnd; ++itr) {
             preconditionFacts.push_back(set<int>());
-            
+
             if (itr->second == VAL::E_AT) continue;
-            
+
             set<int> & toFill = preconditionFacts.back();
-            
+
             const list<Literal*> & pres = (itr->second == VAL::E_AT_START
                                            ? RPGBuilder::getProcessedStartPropositionalPreconditions()[itr->first->getID()]
                                            : RPGBuilder::getEndPropositionalPreconditions()[itr->first->getID()]);
-                                           
+
             list<Literal*>::const_iterator pItr = pres.begin();
             const list<Literal*>::const_iterator pEnd = pres.end();
-            
+
             for (; pItr != pEnd; ++pItr) {
                 toFill.insert((*pItr)->getStateID());
             }
         }
     }
-    
+
     list<int> penalties;
-    
+
     list<set<int> >::const_iterator ownPFItr = preconditionFacts.begin();
     list<ActionSegment >::iterator itr = tmp.begin();
     const list<ActionSegment >::iterator itrEnd = tmp.end();
@@ -3348,44 +3349,44 @@ void reorderNonDeletorsFirst(list<ActionSegment > & applicableActions)
         int penaltyScore = 0;
         if (itr->second != VAL::E_AT) {
             set<int> toFill;
-            
+
             const list<Literal*> & effs = (itr->second == VAL::E_AT_START
                                             ? RPGBuilder::getStartPropositionDeletes()[itr->first->getID()]
                                             : RPGBuilder::getEndPropositionDeletes()[itr->first->getID()]);
-                                            
+
             list<Literal*>::const_iterator eItr = effs.begin();
             const list<Literal*>::const_iterator eEnd = effs.end();
 
             for (; eItr != eEnd; ++eItr) {
                 toFill.insert((*eItr)->getStateID());
             }
-            
+
             list<set<int> >::const_iterator pfItr = preconditionFacts.begin();
             const list<set<int> >::const_iterator pfEnd = preconditionFacts.end();
-            
+
             for (; pfItr != pfEnd; ++pfItr) {
                 if (pfItr == ownPFItr) {
                     continue;
                 }
                 set<int> overlap;
-                
+
                 std::set_intersection(pfItr->begin(), pfItr->end(), toFill.begin(), toFill.end(),
                                       insert_iterator<set<int> >(overlap, overlap.begin()));
-                                      
+
                 if (!overlap.empty()) {
                     ++penaltyScore;
                 }
             }
         }
-        
+
         list<int>::iterator penItr = penalties.begin();
         list<ActionSegment>::iterator actItr = applicableActions.begin();
-        
+
         for (; actItr != applicableActions.end() && penaltyScore >= *penItr; ++actItr, ++penItr) ;
-        
+
         penalties.insert(penItr, penaltyScore);
         applicableActions.insert(actItr, *itr);
-        
+
     }
 };
 
@@ -3683,39 +3684,39 @@ typedef map<ExtendedMinimalState*, double, SecondaryExtendedStateLessThan> Inner
 typedef map<ExtendedMinimalState*, pair<double, InnerMap>, WeakExtendedStateLessThan> OuterMap;
 
 class StateHash {
-    
+
 public:
-    
+
     class InsertIterator {
 
     protected:
         InsertIterator() {
         }
-    public:    
+    public:
         virtual ~InsertIterator() {
         }
-        
+
         virtual void setTimestampOfThisState(const ExtendedMinimalState * const e) = 0;
         virtual bool primaryNewState() const = 0;
         virtual bool secondaryNewState() const = 0;
-        virtual double previousTimestamp() const = 0;            
+        virtual double previousTimestamp() const = 0;
     };
-    
+
     class FindIterator {
-        
+
     protected:
         FindIterator() {
-        }        
-    public:    
+        }
+    public:
         virtual ~FindIterator() {
         }
-        
+
         virtual bool primaryNewState() const = 0;
         virtual bool secondaryNewState() const = 0;
-        virtual double previousTimestamp() const = 0;            
-        
+        virtual double previousTimestamp() const = 0;
+
     };
-    
+
     virtual InsertIterator * insertState(SearchQueueItem * const s, StatesToDelete * const keptStates)  __attribute__((warn_unused_result)) = 0;
     virtual InsertIterator * insertState(ExtendedMinimalState * const e)  __attribute__((warn_unused_result)) = 0;
     virtual FindIterator* findState(ExtendedMinimalState * const e) const   __attribute__((warn_unused_result)) = 0;
@@ -3730,11 +3731,11 @@ public:
     class InsertIterator : public StateHash::InsertIterator {
 
     friend class NormalStateHash;
-        
+
     protected:
         pair<OuterMap::iterator, bool> outerInsertion;
         pair<InnerMap::iterator, bool> innerInsertion;
-        
+
     public:
         InsertIterator() {
         }
@@ -3748,7 +3749,7 @@ public:
             }
             innerInsertion.first->second = t;
         }
-        
+
         virtual bool primaryNewState() const {
             return outerInsertion.second;
         }
@@ -3758,24 +3759,24 @@ public:
         virtual double previousTimestamp() const {
             return innerInsertion.first->second;
         }
-        
+
     };
 
     class FindIterator : public StateHash::FindIterator {
 
     friend class NormalStateHash;
-    
+
     protected:
         OuterMap::const_iterator outerFind;
         InnerMap::const_iterator innerFind;
 
         OuterMap::const_iterator outerEnd;
         InnerMap::const_iterator innerEnd;
-        
+
         FindIterator(const OuterMap::const_iterator & itr, const OuterMap::const_iterator & itrEnd)
                 : outerFind(itr), outerEnd(itrEnd) {
         }
-        
+
     public:
         virtual bool primaryNewState() const {
             return (outerFind == outerEnd);
@@ -3855,10 +3856,10 @@ public:
 typedef map<ExtendedMinimalState*, double, FullExtendedStateLessThan> InnerDominanceMap;
 
 struct ParetoStatesAndOthers {
-    
+
     list<pair<ExtendedMinimalState*,double> > paretoStates;
     InnerDominanceMap others;
-    
+
 };
 
 typedef map<ExtendedMinimalState*, ParetoStatesAndOthers, ExtendedStateLessThanOnPropositionsAndNonDominatedVariables> DominanceMap;
@@ -3867,22 +3868,22 @@ class DominanceStateHash : protected DominanceMap, public StateHash
 {
 
 private:
-    
+
     static vector<int> varsWithDominanceConstraints;
     static vector<bool> thatVarIsBiggerBetter;
     static int numberOfVarsWithDominanceConstraints;
-    
+
 public:
 
     class InsertIterator : public StateHash::InsertIterator {
 
     friend class DominanceStateHash;
-        
+
     protected:
         pair<DominanceMap::iterator, bool> outerInsertion;
         list<pair<ExtendedMinimalState*,double> >::iterator paretoStateListIterator;
         pair<InnerDominanceMap::iterator, bool> innerInsertion;
-        
+
     public:
         InsertIterator() {
         }
@@ -3898,7 +3899,7 @@ public:
             }
             innerInsertion.first->second = t;
         }
-        
+
         virtual bool primaryNewState() const {
             return (paretoStateListIterator != outerInsertion.first->second.paretoStates.end());
         }
@@ -3908,26 +3909,26 @@ public:
         virtual double previousTimestamp() const {
             return innerInsertion.first->second;
         }
-        
+
     };
 
     class FindIterator : public StateHash::FindIterator {
 
     friend class DominanceStateHash;
-    
+
     protected:
         DominanceMap::const_iterator outerFind;
         InnerDominanceMap::const_iterator innerFind;
-                
+
         DominanceMap::const_iterator outerEnd;
         InnerDominanceMap::const_iterator innerEnd;
-        
+
         bool dominatedByAnotherState;
-        
+
         FindIterator(const DominanceMap::const_iterator & itr, const DominanceMap::const_iterator & itrEnd)
                 : outerFind(itr), outerEnd(itrEnd), dominatedByAnotherState(false) {
         }
-        
+
     public:
         virtual bool primaryNewState() const {
             return ((outerFind == outerEnd) || !dominatedByAnotherState);
@@ -3942,9 +3943,9 @@ public:
 
     static int countDominatedVariables() {
         const vector<NumericAnalysis::dominance_constraint> & dcs = NumericAnalysis::getDominanceConstraints();
-        
+
         const int dcSize = dcs.size();
-        
+
         for (int i = 0; i < dcSize; ++i) {
             if (dcs[i] == NumericAnalysis::E_BIGGERISBETTER) {
                 varsWithDominanceConstraints.push_back(i);
@@ -3954,12 +3955,12 @@ public:
                 thatVarIsBiggerBetter.push_back(false);
             }
         }
-        
-        numberOfVarsWithDominanceConstraints = varsWithDominanceConstraints.size();        
-        
-        return numberOfVarsWithDominanceConstraints;                
+
+        numberOfVarsWithDominanceConstraints = varsWithDominanceConstraints.size();
+
+        return numberOfVarsWithDominanceConstraints;
     }
-    
+
     DominanceStateHash() {
         assert(numberOfVarsWithDominanceConstraints);
     }
@@ -3968,7 +3969,7 @@ public:
     }
 
     virtual InsertIterator * insertState(SearchQueueItem * const s, StatesToDelete * const keptStates)  __attribute__((warn_unused_result)) {
-        
+
         InsertIterator* const toReturn = insertState(s->state());
 
         if (toReturn->outerInsertion.second || toReturn->innerInsertion.second) {
@@ -3989,57 +3990,57 @@ public:
 
         toReturn->outerInsertion = insert(make_pair(e, emptyInner));
         toReturn->paretoStateListIterator = toReturn->outerInsertion.first->second.paretoStates.end();
-        
+
         if (toReturn->outerInsertion.second) {
             if (insDebug) {
                 cout << "No states previously at " << &(toReturn->outerInsertion.first->second) << ": " << e << " is the first one" << endl;
             }
-            
+
             // haven't seen anything with this combination of propositions and non-dominated variable values before
             // so, it's got to be new.
             toReturn->outerInsertion.first->second.paretoStates.push_front(make_pair(e, e->timeStamp));
             toReturn->paretoStateListIterator = toReturn->outerInsertion.first->second.paretoStates.begin();
-            toReturn->innerInsertion = toReturn->outerInsertion.first->second.others.insert(make_pair(e, e->timeStamp));            
+            toReturn->innerInsertion = toReturn->outerInsertion.first->second.others.insert(make_pair(e, e->timeStamp));
         } else {
             // work out if this dominates any existing states on the list
-                       
-                       
+
+
             bool dominatesAnything = false;
             bool dominatedByAnything = false;
             bool identicalToAnything = false;
             bool betterThanAnExistingStateInAtLeastOneWay = false;
-            
+
             list<pair<ExtendedMinimalState*, double> > & paretoStates = toReturn->outerInsertion.first->second.paretoStates;
 
             if (insDebug) {
                 cout << "Checking " << paretoStates.size() << " pareto set of states at " << &(toReturn->outerInsertion.first->second) << endl;
             }
-                                   
-                                   
-            
+
+
+
             list<pair<ExtendedMinimalState*, double> >::iterator psItr = paretoStates.begin();
             const list<pair<ExtendedMinimalState*, double> >::iterator psEnd = paretoStates.end();
-            
+
             int v;
-            
+
             const vector<double> & newStateMin = e->getInnerState().secondMin;
             const vector<double> & newStateMax = e->getInnerState().secondMax;
-            
+
             while (psItr != psEnd) {
                 bool anythingBetter = false;
                 bool anythingWorse = false;
-                
+
                 if (insDebug) {
                     cout << "- Comparing to " << psItr->first << endl;
                 }
-                                       
-                                       
+
+
                 const vector<double> & oldStateMin = psItr->first->getInnerState().secondMin;
                 const vector<double> & oldStateMax = psItr->first->getInnerState().secondMax;
-                
+
                 for (int i = 0; i < numberOfVarsWithDominanceConstraints; ++i) {
                     v = varsWithDominanceConstraints[i];
-                    if (thatVarIsBiggerBetter[i]) {                        
+                    if (thatVarIsBiggerBetter[i]) {
                         if (newStateMin[v] > oldStateMin[v] || newStateMax[v] > oldStateMax[v]) {
                             if (insDebug) {
                                 cout << "New bounds on " << *(RPGBuilder::getPNE(v)) << " are better: [" << newStateMin[v] << ", " << newStateMax[v] << "] vs [" << oldStateMin[v] << ", " << oldStateMax[v] << "]\n";
@@ -4049,20 +4050,20 @@ public:
                         if (newStateMin[v] < oldStateMin[v] && newStateMax[v] < oldStateMax[v]) {
                             if (insDebug) {
                                 cout << "New bounds on " << *(RPGBuilder::getPNE(v)) << " are worse: [" << newStateMin[v] << ", " << newStateMax[v] << "] vs [" << oldStateMin[v] << ", " << oldStateMax[v] << "]\n";
-                            }                            
+                            }
                             anythingWorse = true;
                         }
                     } else {
                         if (newStateMin[v] < oldStateMin[v] || newStateMax[v] < oldStateMax[v]) {
                             if (insDebug) {
                                 cout << "New bounds on " << *(RPGBuilder::getPNE(v)) << " are better: [" << newStateMin[v] << ", " << newStateMax[v] << "] vs [" << oldStateMin[v] << ", " << oldStateMax[v] << "]\n";
-                            }                            
+                            }
                             anythingBetter = true;
                         }
                         if (newStateMin[v] > oldStateMin[v] && newStateMax[v] > oldStateMax[v]) {
                             if (insDebug) {
                                 cout << "New bounds on " << *(RPGBuilder::getPNE(v)) << " are worse: [" << newStateMin[v] << ", " << newStateMax[v] << "] vs [" << oldStateMin[v] << ", " << oldStateMax[v] << "]\n";
-                            }                            
+                            }
                             anythingWorse = true;
                         }
                     }
@@ -4072,14 +4073,14 @@ public:
                         betterThanAnExistingStateInAtLeastOneWay = true;
                         if (insDebug) {
                             cout << "  - New state is better in at least one way\n";
-                        }                        
+                        }
                     } else {
                         // something is worse but nothing is better - existing state dominates this one
                         dominatedByAnything = true;
                         if (insDebug) {
                             cout << "  - Dominates the new state\n";
-                        }                        
-                        break;                        
+                        }
+                        break;
                     }
                     ++psItr;
                 } else {
@@ -4091,7 +4092,7 @@ public:
                         if (insDebug) {
                             cout << "  - New state dominates this one\n";
                         }
-                        
+
                     } else {
                         // nothing worse, nothing better - is identical to this state
                         // (at least on the primary criteria)
@@ -4099,19 +4100,19 @@ public:
                         if (insDebug) {
                             cout << "  - Identical to the new state\n";
                         }
-                        
-                        break;                        
+
+                        break;
                     }
                 }
             }
-            
+
             if (identicalToAnything || dominatedByAnything) {
                 if (insDebug) {
                     cout << "As it's identical to something, or dominated by something, just doing a secondary insertion of " << e << "\n";
                 }
-                
-                toReturn->innerInsertion = toReturn->outerInsertion.first->second.others.insert(make_pair(e, e->timeStamp));                
-                
+
+                toReturn->innerInsertion = toReturn->outerInsertion.first->second.others.insert(make_pair(e, e->timeStamp));
+
                 if ((Globals::globalVerbosity & 1) && toReturn->innerInsertion.second) {
                     cout << "D"; cout.flush();
                 }
@@ -4120,25 +4121,25 @@ public:
                     if (insDebug) {
                         cout << "As it dominates something, or is non-dominated, doing a primary insertion of " << e << " and adding to the pareto list\n";
                     }
-                    
+
                     toReturn->outerInsertion.first->second.paretoStates.push_front(make_pair(e, e->timeStamp));
                     toReturn->paretoStateListIterator = toReturn->outerInsertion.first->second.paretoStates.begin();
-                    toReturn->innerInsertion = toReturn->outerInsertion.first->second.others.insert(make_pair(e, e->timeStamp));            
+                    toReturn->innerInsertion = toReturn->outerInsertion.first->second.others.insert(make_pair(e, e->timeStamp));
                     assert(toReturn->innerInsertion.second);
                 } else {
                     if (insDebug) {
                         cout << "Secondary insertion of " << e << ": the residual case\n";
                     }
-                    
+
                     toReturn->innerInsertion = toReturn->outerInsertion.first->second.others.insert(make_pair(e, e->timeStamp));
                     if ((Globals::globalVerbosity & 1) && toReturn->innerInsertion.second) {
                         cout << "D"; cout.flush();
                     }
                 }
             }
-            
+
         }
-        
+
         return toReturn;
     }
 
@@ -4148,7 +4149,7 @@ public:
         if (toReturn->outerFind != end()) {
             toReturn->innerFind = toReturn->outerFind->second.others.find(e);
             toReturn->innerEnd = toReturn->outerFind->second.others.end();
-            
+
             if (toReturn->outerFind->second.paretoStates.empty()) {
                 toReturn->dominatedByAnotherState = false;
             } else {
@@ -4157,26 +4158,26 @@ public:
                 bool dominatedByAnything = false;
                 bool identicalToAnything = false;
                 bool betterThanAnExistingStateInAtLeastOneWay = false;
-                
+
                 const list<pair<ExtendedMinimalState*, double> > & paretoStates = toReturn->outerFind->second.paretoStates;
-                
+
                 list<pair<ExtendedMinimalState*, double> >::const_iterator psItr = paretoStates.begin();
                 const list<pair<ExtendedMinimalState*, double> >::const_iterator psEnd = paretoStates.end();
-                
+
                 int v;
-                
+
                 const vector<double> & newStateMin = e->getInnerState().secondMin;
                 const vector<double> & newStateMax = e->getInnerState().secondMax;
-                
+
                 for (; psItr != psEnd; ++psItr) {
                     bool anythingBetter = false;
                     bool anythingWorse = false;
                     const vector<double> & oldStateMin = psItr->first->getInnerState().secondMin;
                     const vector<double> & oldStateMax = psItr->first->getInnerState().secondMax;
-                    
+
                     for (int i = 0; i < numberOfVarsWithDominanceConstraints; ++i) {
                         v = varsWithDominanceConstraints[i];
-                        if (thatVarIsBiggerBetter[i]) {                        
+                        if (thatVarIsBiggerBetter[i]) {
                             if (newStateMin[v] > oldStateMin[v] || newStateMax[v] > oldStateMax[v]) {
                                 anythingBetter = true;
                             }
@@ -4198,7 +4199,7 @@ public:
                         } else {
                             // something is worse but nothing is better - existing state dominates this one
                             dominatedByAnything = true;
-                            break;                        
+                            break;
                         }
                     } else {
                         if (anythingBetter) {
@@ -4208,20 +4209,20 @@ public:
                             // nothing worse, nothing better - is identical to this state
                             // (at least on the primary criteria)
                             identicalToAnything = true;
-                            break;                        
+                            break;
                         }
                     }
                 }
-                
+
                 if (identicalToAnything || dominatedByAnything) {
-                    toReturn->dominatedByAnotherState = true;                
+                    toReturn->dominatedByAnotherState = true;
                 } else {
                     if (dominatesAnything || betterThanAnExistingStateInAtLeastOneWay) {
                         toReturn->dominatedByAnotherState = false;
                     } else {
                         toReturn->dominatedByAnotherState = true;
                     }
-                }                                
+                }
             }
         }
         return toReturn;
@@ -4242,17 +4243,17 @@ struct OldCompareStates {
 
 
     bool operator()(const ExtendedMinimalState & ae, const ExtendedMinimalState & be) const {
-        
+
         const MinimalState & a = ae.getInnerState();
         const MinimalState & b = be.getInnerState();
-        
+
         const int csVal = CSBase::oldCompareSets(a.first, b.first);
         if (csVal > 0) {
             return true;
         } else if (csVal < 0) {
             return false;
         }
-        
+
         const int cv1Val = CSBase::compareVecs(a.secondMin, b.secondMin);
         if (cv1Val > 0) {
             return true;
@@ -4267,7 +4268,7 @@ struct OldCompareStates {
             return false;
         }
 
-    
+
         const int saVal = CSBase::compareMaps(a.startedActions, b.startedActions);
 
         if (saVal > 0) {
@@ -4283,7 +4284,7 @@ struct OldCompareStates {
         } else if (invVal < 0) {
             return false;
         }*/
-    
+
         const int ceVal = CSBase::compareLists(ae.startEventQueue, be.startEventQueue);
 
         if (ceVal > 0) {
@@ -4291,7 +4292,7 @@ struct OldCompareStates {
         } else if (ceVal < 0) {
             return false;
         }
-      
+
         if (a.nextTIL < b.nextTIL) return true;
         if (a.nextTIL > b.nextTIL) return false;
 
@@ -4308,14 +4309,14 @@ struct OldCompareStatesZealously {
 
         const MinimalState & a = ae.getInnerState();
         const MinimalState & b = be.getInnerState();
-        
+
         const int csVal = CSBase::oldCompareSets(a.first, b.first);
         if (csVal > 0) {
             return true;
         } else if (csVal < 0) {
             return false;
         }
-        
+
         const int cv1Val = CSBase::compareVecs(a.secondMin, b.secondMin);
         if (cv1Val > 0) {
             return true;
@@ -4329,7 +4330,7 @@ struct OldCompareStatesZealously {
         } else if (cv2Val < 0) {
             return false;
         }
-    
+
         const int saVal = CSBase::compareMaps(a.startedActions, b.startedActions);
 
         if (saVal > 0) {
@@ -4389,7 +4390,7 @@ list<FFEvent> * FF::doBenchmark(bool & reachedGoal, list<FFEvent> * oldSoln, con
     if (FF::allowCompressionSafeScheduler) {
         FF::allowCompressionSafeScheduler = CompressionSafeScheduler::canUseThisScheduler();
     }
-    
+
 
     set<int> goals;
     set<int> numericGoals;
@@ -4405,9 +4406,9 @@ list<FFEvent> * FF::doBenchmark(bool & reachedGoal, list<FFEvent> * oldSoln, con
 
         initialState.getEditableInnerState().setFacts(tinitialState);
         initialState.getEditableInnerState().setFacts(tinitialFluents);
-        
-        #ifdef STOCHASTICDURATIONS        
-        durationManager->prepareTheInitialState(initialState.getEditableInnerState());        
+
+        #ifdef STOCHASTICDURATIONS
+        durationManager->prepareTheInitialState(initialState.getEditableInnerState());
         #endif
 
     }
@@ -4478,14 +4479,14 @@ list<FFEvent> * FF::doBenchmark(bool & reachedGoal, list<FFEvent> * oldSoln, con
         }
     }
     #endif
-    
+
     if (!doLoops) {
         list<FFEvent> tEvent;
         HTrio h1;
         if (FF::allowCompressionSafeScheduler) {
             h1 = calculateHeuristicAndCompressionSafeSchedule(*(currSQI->state()), 0, goals, numericGoals,
                                                               currSQI->helpfulActions, currSQI->plan, tEvent, -1);
-            
+
         } else {
             h1 = calculateHeuristicAndSchedule(*(currSQI->state()), 0, goals, numericGoals,
                                                (ParentData*) 0, currSQI->helpfulActions, currSQI->plan, tEvent, -1);
@@ -4510,10 +4511,10 @@ list<FFEvent> * FF::doBenchmark(bool & reachedGoal, list<FFEvent> * oldSoln, con
 
     for (int i = 1; osItr != osEnd; ++osItr, ++i) {
 
-        #ifdef ENABLE_DEBUGGING_HOOKS        
-        Globals::remainingActionsInPlan.pop_front();        
+        #ifdef ENABLE_DEBUGGING_HOOKS
+        Globals::remainingActionsInPlan.pop_front();
         #endif
-        
+
         ActionSegment actID(osItr->action, osItr->time_spec, osItr->divisionID, RPGHeuristic::emptyIntList);
 
         {
@@ -4538,10 +4539,10 @@ list<FFEvent> * FF::doBenchmark(bool & reachedGoal, list<FFEvent> * oldSoln, con
         {
             list<ActionSegment > maybeApplicableActions;
             RPGBuilder::getHeuristic()->findApplicableActions(currSQI->state()->getInnerState(), currSQI->state()->timeStamp, maybeApplicableActions);
-            
+
             list<ActionSegment >::const_iterator appItr = maybeApplicableActions.begin();
             const list<ActionSegment >::const_iterator appEnd = maybeApplicableActions.end();
-            
+
             for (; appItr != appEnd; ++appItr) {
                 if (appItr->second == VAL::E_AT && actID.second == VAL::E_AT) {
                     if (appItr->divisionID == actID.divisionID) {
@@ -4559,7 +4560,7 @@ list<FFEvent> * FF::doBenchmark(bool & reachedGoal, list<FFEvent> * oldSoln, con
                 cout << COLOUR_light_red << "*** Action was not considered applicable by findApplicableActions()\n" << COLOUR_default;
             }
         }
-        
+
         #endif
 
         auto_ptr<ParentData> pd(FF::allowCompressionSafeScheduler
@@ -4568,12 +4569,12 @@ list<FFEvent> * FF::doBenchmark(bool & reachedGoal, list<FFEvent> * oldSoln, con
                                      currSQI->state()->startEventQueue)
                                );
 
-        const int oldTIL = currSQI->state()->getInnerState().nextTIL;                    
-                                
+        const int oldTIL = currSQI->state()->getInnerState().nextTIL;
+
         SearchQueueItem * succ = new SearchQueueItem(applyActionToState(actID, *(currSQI->state())), true);
 
         succ->heuristicValue.makespan = currSQI->heuristicValue.makespan;
-        
+
         if (!succ->state()) {
             cout << "Takes us to a null state: trying to start an action whose min duration exceeds its max\n";
         }
@@ -4718,12 +4719,12 @@ list<FFEvent> * FF::doBenchmark(bool & reachedGoal, list<FFEvent> * oldSoln, con
         if (eventTwoDefined) nowList.push_back(extraEventTwo);
 
         HTrio h1;
-        
+
         #ifdef STOCHASTICDURATIONS
-    
+
         bool isAStochasticGoalState = false;
         bool stochasticOkay = true;
-        
+
         if (actID.second == VAL::E_AT_END) {
             if (!durationManager->updateTimestampsOfNewPlanStep(currSQI->state()->getInnerState(), succ->state()->getEditableInnerState(), succ->plan, reusedEndEvent, 0, stepID, isAStochasticGoalState)) {
                 h1 = HTrio(-1.0, DBL_MAX, DBL_MAX, INT_MAX, "Exceeded stochastic deadline");
@@ -4772,7 +4773,7 @@ list<FFEvent> * FF::doBenchmark(bool & reachedGoal, list<FFEvent> * oldSoln, con
                                           &(currSQI->state()->getInnerState().secondMax),  &(succ->state()->tilComesBefore), false);
 
                 vector<double> timeAtWhichValueIsDefined;
-                                          
+
                 tryToSchedule.updateStateFluents(succ->state()->getEditableInnerState().secondMin, succ->state()->getEditableInnerState().secondMax, timeAtWhichValueIsDefined);
             }
 
@@ -4789,24 +4790,24 @@ list<FFEvent> * FF::doBenchmark(bool & reachedGoal, list<FFEvent> * oldSoln, con
             vector<double> timeAtWhichValueIsDefined;
             tryToSchedule.updateStateFluents(succ->state()->getEditableInnerState().secondMin, succ->state()->getEditableInnerState().secondMax, timeAtWhichValueIsDefined);
         } else {
-            
-            #ifdef STOCHASTICDURATIONS            
+
+            #ifdef STOCHASTICDURATIONS
             if (stochasticOkay) {
             #endif
-            
+
             if (FF::allowCompressionSafeScheduler) {
                 h1 = calculateHeuristicAndCompressionSafeSchedule(*(succ->state()), currSQI->state(), goals, numericGoals,
                                                    succ->helpfulActions, succ->plan, nowList, stepID, 0, 0.001);
-                
-            } else {            
+
+            } else {
                 h1 = calculateHeuristicAndSchedule(*(succ->state()), currSQI->state(), goals, numericGoals, pd.get(),
                                                        succ->helpfulActions, succ->plan, nowList, stepID, true, 0, 0.001);
             }
-            #ifdef STOCHASTICDURATIONS            
+            #ifdef STOCHASTICDURATIONS
             }
             #endif
-                                                   
-                                                   
+
+
 #ifndef NDEBUG
             if (h1.heuristicValue < 0.0) {
                 cout << COLOUR_light_red << "*** ";
@@ -4884,11 +4885,11 @@ list<FFEvent> * FF::doBenchmark(bool & reachedGoal, list<FFEvent> * oldSoln, con
         if (actID.second == VAL::E_AT_START) {
             if (!RPGBuilder::getRPGDEs(actID.first->getID()).empty()
                 && TemporalAnalysis::canSkipToEnd(actID.first->getID())) { // if it's a compression-safe temporal action
-                        
+
                 const int endStepID = succ->state()->getInnerState().planLength - 1;
-                                    
+
                 succ->state()->getEditableInnerState().updateWhenEndOfActionIs(actID.first->getID(), endStepID, extraEventTwo.lpMinTimestamp);
-                                    
+
             }
         }
         #endif
@@ -5018,7 +5019,7 @@ void registerFinished(ExtendedMinimalState & theState, set<int> & haveFinished)
 }
 
 void printASList(const list<ActionSegment> & helpfulActions) {
-    
+
     {
         list<ActionSegment>::const_iterator haItr = helpfulActions.begin();
         const list<ActionSegment>::const_iterator haEnd = helpfulActions.end();
@@ -5034,7 +5035,7 @@ void printASList(const list<ActionSegment> & helpfulActions) {
             }
         }
     }
-    
+
 }
 
 Solution FF::search(bool & reachedGoal)
@@ -5076,14 +5077,14 @@ Solution FF::search(bool & reachedGoal)
         initialState.getEditableInnerState().setFacts(tinitialState);
         initialState.getEditableInnerState().setFacts(tinitialFluents);
 
-        #ifdef STOCHASTICDURATIONS        
-        durationManager->prepareTheInitialState(initialState.getEditableInnerState());        
+        #ifdef STOCHASTICDURATIONS
+        durationManager->prepareTheInitialState(initialState.getEditableInnerState());
         #endif
-                
+
         if (ffDebug) {
             cout << "Initial state has " << initialState.getInnerState().first.size() << " propositional facts and " << tinitialFluents.size() << " non-static fluents\n";
         }
-        
+
     }
 
 
@@ -5126,8 +5127,8 @@ Solution FF::search(bool & reachedGoal)
 
 #ifdef DOUBLESTATEHASH
     map<ExtendedMinimalState, list<pair<pair<HTrio, bool>, double > >, OldCompareStates> oldVisitedStates;
-    map<ExtendedMinimalState, list<pair<pair<HTrio, bool>, double > >, OldCompareStatesZealously> oldZealousVisitedStates;    
-#endif    
+    map<ExtendedMinimalState, list<pair<pair<HTrio, bool>, double > >, OldCompareStatesZealously> oldZealousVisitedStates;
+#endif
 
     auto_ptr<StateHash> visitedStates(getStateHash());
 
@@ -5177,15 +5178,15 @@ Solution FF::search(bool & reachedGoal)
         itr->setTimestampOfThisState(toHash);
 
         statesKept->alsoCleanUp(toHash);
-        
+
 #ifdef DOUBLESTATEHASH
         {
             list<pair<pair<HTrio, bool>, double> > tList;
             tList.push_back(pair<pair<HTrio, bool>, double>(pair<HTrio, bool>(bestHeuristic, false), 0.0));
-            
+
             oldVisitedStates.insert(pair<ExtendedMinimalState, list<pair<pair<HTrio, bool>, double> > >(*toHash, tList));
-            oldZealousVisitedStates.insert(pair<ExtendedMinimalState, list<pair<pair<HTrio, bool>, double> > >(*toHash, tList));            
-        }        
+            oldZealousVisitedStates.insert(pair<ExtendedMinimalState, list<pair<pair<HTrio, bool>, double> > >(*toHash, tList));
+        }
 #endif
 
     }
@@ -5203,11 +5204,11 @@ Solution FF::search(bool & reachedGoal)
         if (Globals::globalVerbosity & 2) cout << "\n--\n";
         auto_ptr<SearchQueueItem> currSQI(searchQueue.pop_front());
         currSQI->printPlan();
-        
+
         if (currSQI->state()->hasBeenDominated) {
             continue;
         }
-        
+
         bool foundBetter = false;
 
 
@@ -5274,11 +5275,11 @@ Solution FF::search(bool & reachedGoal)
                 } else {
                     tsSound = false;
                 }
-                
+
                 if (tsSound) {
                     succ->heuristicValue.makespan = currSQI->heuristicValue.makespan;
                 }
-                
+
             } else {
                 //registerFinished(*(succ->state), helpfulActsItr->needToFinish);
                 succ = auto_ptr<SearchQueueItem>(new SearchQueueItem(applyActionToState(*helpfulActsItr, *(currSQI->state())), true));
@@ -5288,11 +5289,11 @@ Solution FF::search(bool & reachedGoal)
                 } else {
                     tsSound = false;
                 }
-                
+
                 if (tsSound) {
                     succ->heuristicValue.makespan = currSQI->heuristicValue.makespan;
                 }
-                
+
             }
 
 
@@ -5362,7 +5363,7 @@ Solution FF::search(bool & reachedGoal)
                             succ = auto_ptr<SearchQueueItem>(new SearchQueueItem(applyActionToState(tempSeg, *(TILparent->state())), true));
 
                             succ->heuristicValue.makespan = TILparent->heuristicValue.makespan;
-                            
+
                             if (!succ->state() || !checkTemporalSoundness(*(succ->state()), tempSeg, tn - 1)) {
                                 succ->heuristicValue.heuristicValue = -1.0;
                                 TILfailure = true;
@@ -5415,7 +5416,7 @@ Solution FF::search(bool & reachedGoal)
                                 printState(*(succ->state()));
                                 cout << "New hash would say it's the same as:\n";
                                 printState(*(insResult.outerInsertion.first->first));
-                                
+
                                 WeakExtendedStateLessThan t;
                                 if (t.operator()(succ->state(), insResult.outerInsertion.first->first)) {
                                     cout << "State is less than that in old hash, according to new comparator\n";
@@ -5459,9 +5460,9 @@ Solution FF::search(bool & reachedGoal)
                     if (succ->heuristicValue.heuristicValue != -1.0) {
 
                         if (succ->heuristicValue.heuristicValue == 0.0) {
-                            
+
                             reachedGoal = true;
-                            
+
                             if (!carryOnSearching(succ->state()->getInnerState(), succ->plan)) {
                                 return workingBestSolution;
                             }
@@ -5478,7 +5479,7 @@ Solution FF::search(bool & reachedGoal)
                         } else {
                             vsItr->second.push_back(pair<pair<HTrio, bool>, double>(pair<HTrio, bool>(succ->heuristicValue, false),succ->state()->timeStamp));
                         }
-#endif  
+#endif
                         if ((succ->heuristicValue.heuristicValue < bestHeuristic.heuristicValue)
                                 || (FF::makespanTieBreak && (succ->heuristicValue.heuristicValue == bestHeuristic.heuristicValue)
                                     && (succ->heuristicValue.makespan < bestHeuristic.makespan))
@@ -5521,7 +5522,7 @@ Solution FF::search(bool & reachedGoal)
     if (!bestFirstSearch) {
         cout << "\nProblem unsolvable by EHC, and best-first search has been disabled\n";
 
-        reachedGoal = false;        
+        reachedGoal = false;
         return workingBestSolution;
     }
 
@@ -5529,16 +5530,16 @@ Solution FF::search(bool & reachedGoal)
 
     WAStar = true;
     visitedStates->clear();
-    
+
 #ifdef DOUBLESTATEHASH
     oldVisitedStates.clear();
     oldZealousVisitedStates.clear();
 #endif
-    
+
     statesKept = auto_ptr<StatesToDelete>(new StatesToDelete());
 
-    
-    
+
+
     {
 
         if (FF::biasD) {
@@ -5562,11 +5563,11 @@ Solution FF::search(bool & reachedGoal)
             auto_ptr<StateHash::InsertIterator> itr(visitedStates->insertState(toHash));
             itr->setTimestampOfThisState(toHash);
             statesKept->alsoCleanUp(toHash);
-            
+
 #ifdef DOUBLESTATEHASH
             list<pair<pair<HTrio, bool>, double> > tList;
             tList.push_back(pair<pair<HTrio, bool>, double>(pair<HTrio, bool>(bestHeuristic, true), 0.0));
-            
+
             oldVisitedStates.insert(pair<ExtendedMinimalState, list<pair<pair<HTrio, bool>, double> > >(*toHash, tList));
             oldZealousVisitedStates.insert(pair<ExtendedMinimalState, list<pair<pair<HTrio, bool>, double> > >(*toHash, tList));
 #endif
@@ -5580,7 +5581,7 @@ Solution FF::search(bool & reachedGoal)
         if (currSQI->state()->hasBeenDominated) {
             continue;
         }
-        
+
         if (Globals::globalVerbosity & 2) {
             cout << "\n--\n";
             cout << "Now visiting state with heuristic value of " << currSQI->heuristicValue.heuristicValue << " | " << currSQI->heuristicValue.makespan << "\n";
@@ -5614,8 +5615,8 @@ Solution FF::search(bool & reachedGoal)
         if (nonDeletorsFirst) {
             reorderNonDeletorsFirst(applicableActions);
         }
-        
-        
+
+
         if (Globals::globalVerbosity & 2) {
             cout << "Applicable actions are:\n";
             list<ActionSegment >::iterator helpfulActsItr = applicableActions.begin();
@@ -5665,7 +5666,7 @@ Solution FF::search(bool & reachedGoal)
                 } else {
                     tsSound = checkTemporalSoundness(*(succ->state()), tempSeg, oldTIL);
                 }
-                
+
                 if (tsSound) {
                     succ->heuristicValue.makespan = currSQI->heuristicValue.makespan;
                 }
@@ -5680,7 +5681,7 @@ Solution FF::search(bool & reachedGoal)
                     tsSound = (   stateHasProgressedBeyondItsParent(*helpfulActsItr, *(currSQI->state()), *(succ->state()))
                                && checkTemporalSoundness(*(succ->state()), *helpfulActsItr)                                  );
                 }
-                
+
                 if (tsSound) {
                     succ->heuristicValue.makespan = currSQI->heuristicValue.makespan;
                 }
@@ -5764,9 +5765,9 @@ Solution FF::search(bool & reachedGoal)
 
                             tempSeg = ActionSegment(0, VAL::E_AT, tn, RPGHeuristic::emptyIntList);
                             succ = auto_ptr<SearchQueueItem>(new SearchQueueItem(applyActionToState(tempSeg, *(TILparent->state())), true));
-                            
+
                             succ->heuristicValue.makespan = TILparent->heuristicValue.makespan;
-                            
+
                             if (!succ->state() || !checkTemporalSoundness(*(succ->state()), tempSeg, tn - 1)) {
                                 succ->heuristicValue.heuristicValue = -1.0;
                                 TILfailure = true;
@@ -5786,7 +5787,7 @@ Solution FF::search(bool & reachedGoal)
                 map<ExtendedMinimalState, list<pair<pair<HTrio, bool>, double> >, OldCompareStatesZealously>::iterator zvsItr;
                 map<ExtendedMinimalState, list<pair<pair<HTrio, bool>, double> >, OldCompareStates>::iterator vsItr;
 #endif
-                
+
                 if (!TILfailure) {
 
                     insResult = auto_ptr<StateHash::InsertIterator>(visitedStates->insertState(succ.get(), statesKept.get()));
@@ -5816,7 +5817,7 @@ Solution FF::search(bool & reachedGoal)
                     {
                         zvsItr = oldZealousVisitedStates.insert(pair<ExtendedMinimalState, list<pair<pair<HTrio, bool>, double> > >(*(succ->state()), list<pair<pair<HTrio, bool>, double> >())).first;
                         vsItr = oldVisitedStates.insert(pair<ExtendedMinimalState, list<pair<pair<HTrio, bool>, double> > >(*(succ->state()), list<pair<pair<HTrio, bool>, double> >())).first;
-                        
+
                         if (vsItr->second.empty() || (fabs(vsItr->second.back().second - succ->state()->timeStamp) > 0.0005 && (vsItr->second.back().second > succ->state()->timeStamp))) {
                             doubleVisitTheState = 2;
                             if (zvsItr->second.empty()) {
@@ -5825,9 +5826,9 @@ Solution FF::search(bool & reachedGoal)
                             assert(visitTheState == doubleVisitTheState);
                         } else {
                             assert(visitTheState == 0);
-                                                
+
                         }
-                        
+
                     }
 #endif
 
@@ -5858,12 +5859,12 @@ Solution FF::search(bool & reachedGoal)
 
 
                         if (succ->heuristicValue.heuristicValue == 0.0) {
-                            reachedGoal = true;                            
-                            
+                            reachedGoal = true;
+
                             if (!carryOnSearching(succ->state()->getInnerState(), succ->plan)) {
                                 return workingBestSolution;
                             }
-                            
+
                             //return make_pair(new list<FFEvent>(succ->plan), new TemporalConstraints(*(succ->state()->getInnerState().temporalConstraints)));
                         }
                         insResult->setTimestampOfThisState(succ->state());
@@ -5873,7 +5874,7 @@ Solution FF::search(bool & reachedGoal)
                         zvsItr->second.push_back(pair<pair<HTrio, bool>, double>(pair<HTrio, bool>(succ->heuristicValue, true),succ->state()->timeStamp));
 #endif
                         if (succ->heuristicValue.heuristicValue != 0.0) {
-                        
+
                             if (succ->heuristicValue.heuristicValue < bestHeuristic.heuristicValue || (FF::makespanTieBreak && (succ->heuristicValue.heuristicValue == bestHeuristic.heuristicValue && succ->heuristicValue.makespan < bestHeuristic.makespan))) {
 
                                 bestHeuristic = succ->heuristicValue;
@@ -5894,7 +5895,7 @@ Solution FF::search(bool & reachedGoal)
                                 searchQueue.insert(succ.release(), visitTheState);
                             }
                         }
-                        
+
                     } else {
                         if (Globals::globalVerbosity & 1) {
                             cout << "d"; cout.flush();
@@ -5944,7 +5945,7 @@ list<FFEvent> * FF::reprocessPlan(list<FFEvent> * oldSoln, TemporalConstraints *
     if (FF::allowCompressionSafeScheduler) {
         FF::allowCompressionSafeScheduler = CompressionSafeScheduler::canUseThisScheduler();
     }
-    
+
 
     const bool ffDebug = (Globals::globalVerbosity & 2);
 
@@ -6005,15 +6006,15 @@ list<FFEvent> * FF::reprocessPlan(list<FFEvent> * oldSoln, TemporalConstraints *
 
         list<FFEvent>::iterator osItr = oldSoln->begin();
         const list<FFEvent>::iterator osEnd = oldSoln->end();
-        
+
         for (; osItr != osEnd; ++osItr) {
             if ((osItr->time_spec == VAL::E_AT_END) && TemporalAnalysis::canSkipToEnd(osItr->action->getID())) {
                 continue;
             }
-                    
+
             list<FFEvent*>::iterator sortedItr = sortedSoln.begin();
             const list<FFEvent*>::iterator sortedEnd = sortedSoln.end();
-            
+
             for (; sortedItr != sortedEnd; ++sortedItr) {
                 if (osItr->lpTimestamp < (*sortedItr)->lpTimestamp) {
                     sortedSoln.insert(sortedItr, &(*osItr));
@@ -6029,23 +6030,23 @@ list<FFEvent> * FF::reprocessPlan(list<FFEvent> * oldSoln, TemporalConstraints *
         vector<set<int> > fanOut(evCount);
         vector<int> fanIn(evCount,0);
         vector<FFEvent*> eventForStep(evCount);
-        
+
         list<int> openList;
-        
+
         {
             list<FFEvent>::iterator osItr = oldSoln->begin();
             const list<FFEvent>::iterator osEnd = oldSoln->end();
-            
+
             for (int ev = 0; osItr != osEnd; ++osItr, ++ev) {
-                
+
                 eventForStep[ev] = &(*osItr);
-                
+
                 const map<int,bool> * stepsBeforeThisOne = cons->stepsBefore(ev);
-                
+
                 if (stepsBeforeThisOne) {
                     map<int,bool>::const_iterator itr = stepsBeforeThisOne->begin();
                     const map<int,bool>::const_iterator itrEnd = stepsBeforeThisOne->end();
-                    
+
                     for (; itr != itrEnd; ++itr) {
                         if (fanOut[itr->first].insert(ev).second) {
                             ++fanIn[ev];
@@ -6056,10 +6057,10 @@ list<FFEvent> * FF::reprocessPlan(list<FFEvent> * oldSoln, TemporalConstraints *
                 if (osItr->time_spec == VAL::E_AT) {
                     list<FFEvent>::iterator ostItr = oldSoln->begin();
                     const list<FFEvent>::iterator ostEnd = oldSoln->end();
-                    
+
                     for (int ost = 0; ostItr != ostEnd; ++ostItr, ++ost) {
                         if (osItr == ostItr) continue;
-                        
+
                         if (ostItr->lpTimestamp < osItr->lpTimestamp - 0.0001) {
                             if (fanOut[ost].insert(ev).second) {
                                 ++fanIn[ev];
@@ -6078,31 +6079,31 @@ list<FFEvent> * FF::reprocessPlan(list<FFEvent> * oldSoln, TemporalConstraints *
                 openList.push_back(ev);
             }
         }
-        
+
         for (; !openList.empty(); openList.pop_front()) {
-            
-            const int & currStep = openList.front();         
-            
-            if ((eventForStep[currStep]->time_spec != VAL::E_AT_END) || !TemporalAnalysis::canSkipToEnd(eventForStep[currStep]->action->getID())) {            
+
+            const int & currStep = openList.front();
+
+            if ((eventForStep[currStep]->time_spec != VAL::E_AT_END) || !TemporalAnalysis::canSkipToEnd(eventForStep[currStep]->action->getID())) {
                 sortedSoln.push_back(eventForStep[currStep]);
             }
-            
+
             set<int>::const_iterator foItr = fanOut[currStep].begin();
             const set<int>::const_iterator foEnd = fanOut[currStep].end();
-            
+
             for (; foItr != foEnd; ++foItr) {
                 if (!(--(fanIn[*foItr]))) {
                     openList.push_back(*foItr);
                 }
             }
-            
+
         }
     }
-    
+
     if (Globals::globalVerbosity & 2) {
         list<FFEvent*>::const_iterator oldSolnItr = sortedSoln.begin();
         const list<FFEvent*>::const_iterator oldSolnEnd = sortedSoln.end();
-        
+
         for (int stepID = 0; oldSolnItr != oldSolnEnd; ++oldSolnItr, ++stepID) {
 
             cout << "Sorted plan step " << stepID << ": ";
@@ -6117,24 +6118,24 @@ list<FFEvent> * FF::reprocessPlan(list<FFEvent> * oldSoln, TemporalConstraints *
                 cout << *((*oldSolnItr)->action) << ", was at " << (*oldSolnItr)->lpTimestamp << endl;
             }
         }
-            
+
     }
-    
+
     auto_ptr<StateHash> visitedStates(getStateHash());
 
     const list<FFEvent*>::const_iterator oldSolnEnd = sortedSoln.end();
-    
+
     SearchQueueItem * currSQI = new SearchQueueItem(&initialState, false);
     {
         list<FFEvent> tEvent;
         FFheader_upToDate = false;
         FFonly_one_successor = true;
-        
+
         #ifdef ENABLE_DEBUGGING_HOOKS
         {
             Globals::remainingActionsInPlan.clear();
             list<FFEvent*>::const_iterator remainingSolnItr = sortedSoln.begin();
-            
+
             for (; remainingSolnItr != oldSolnEnd; ++remainingSolnItr) {
                 if ((*remainingSolnItr)->time_spec == VAL::E_AT) {
                     Globals::remainingActionsInPlan.push_back(ActionSegment((instantiatedOp*)0, VAL::E_AT, (*remainingSolnItr)->divisionID, set<int>()));
@@ -6148,41 +6149,41 @@ list<FFEvent> * FF::reprocessPlan(list<FFEvent> * oldSoln, TemporalConstraints *
         }
         #endif
         if (FF::allowCompressionSafeScheduler) {
-            calculateHeuristicAndCompressionSafeSchedule(initialState, 0, goals, numericGoals, currSQI->helpfulActions, currSQI->plan, tEvent, -1);        
+            calculateHeuristicAndCompressionSafeSchedule(initialState, 0, goals, numericGoals, currSQI->helpfulActions, currSQI->plan, tEvent, -1);
         } else {
-            calculateHeuristicAndSchedule(initialState, 0, goals, numericGoals, (ParentData*) 0, currSQI->helpfulActions, currSQI->plan, tEvent, -1);        
+            calculateHeuristicAndSchedule(initialState, 0, goals, numericGoals, (ParentData*) 0, currSQI->helpfulActions, currSQI->plan, tEvent, -1);
         }
     }
 
     auto_ptr<StatesToDelete> statesKept(new StatesToDelete());
 
     list<FFEvent*>::const_iterator oldSolnItr = sortedSoln.begin();
-    
+
     const int lastStep = sortedSoln.size() - 1;
-    
+
     for (int stepID = 0; oldSolnItr != oldSolnEnd; ++oldSolnItr, ++stepID) {
 
         #ifdef ENABLE_DEBUGGING_HOOKS
         Globals::remainingActionsInPlan.pop_front();
         #endif
-                    
+
         ActionSegment nextSeg((*oldSolnItr)->action, (*oldSolnItr)->time_spec, (*oldSolnItr)->divisionID, RPGHeuristic::emptyIntList);
-                
+
         if (Globals::globalVerbosity & 2) {
             cout << "[" << stepID << "] ";
             cout.flush();
         }
-        
+
         if (stepID == lastStep) {
             scheduleToMetric = true;
         }
-        
+
         const auto_ptr<ParentData> incrementalData(FF::allowCompressionSafeScheduler ? 0 : LPScheduler::prime(currSQI->plan, currSQI->state()->getInnerState().temporalConstraints,
                 currSQI->state()->startEventQueue));
-                
+
         auto_ptr<SearchQueueItem> succ = auto_ptr<SearchQueueItem>(new SearchQueueItem(applyActionToState(nextSeg, *(currSQI->state())), true));
         succ->heuristicValue.makespan = currSQI->heuristicValue.makespan;
-        
+
         evaluateStateAndUpdatePlan(succ,  *(succ->state()), currSQI->state(), goals, numericGoals, incrementalData.get(), succ->helpfulActions, nextSeg, currSQI->plan);
 
         delete currSQI;
@@ -6190,26 +6191,26 @@ list<FFEvent> * FF::reprocessPlan(list<FFEvent> * oldSoln, TemporalConstraints *
 
     }
     list<FFEvent> * const toReturn = new list<FFEvent>(currSQI->plan);
-    
+
     delete currSQI;
     return toReturn;
 }
 
 void FF::printPlanAsDot(ostream & o, const list<FFEvent> & plan, const TemporalConstraints * cons)
 {
-    
+
     o << "digraph Plan {\n";
     o << "\ttimeZero [label=\"t0\"];\n";
-    
-    
+
+
     list<FFEvent>::const_iterator pItr = plan.begin();
     const list<FFEvent>::const_iterator pEnd = plan.end();
-    
+
     for (int i = 0; pItr != pEnd; ++pItr, ++i) {
-        
-        
+
+
         o << "\tstep" << i << " [label=\"";
-        
+
         if (pItr->time_spec == VAL::E_AT) {
             o << "TIL@" << RPGBuilder::getTILVec()[pItr->divisionID]->duration;
         } else if (pItr->time_spec == VAL::E_AT_END) {
@@ -6226,13 +6227,13 @@ void FF::printPlanAsDot(ostream & o, const list<FFEvent> & plan, const TemporalC
             o << " color=blue";
         }
         o << "];\n";
-        
+
         if (!cons->stepsBefore(i)) {
             o << "step" << i << " -> timeZero;";
         } else {
             map<int, bool>::const_iterator eItr = cons->stepsBefore(i)->begin();
             const map<int, bool>::const_iterator eEnd = cons->stepsBefore(i)->end();
-            
+
             for (; eItr != eEnd; ++eItr) {
                 o << "step" << i << " -> step" << eItr->first;
                 if (eItr->second) {
