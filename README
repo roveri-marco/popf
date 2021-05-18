@@ -33,3 +33,6 @@ Run:
 ./plan <domain> <problem> <solution filename>
 
 As POPF2 is an any-time planer, it will save sequentially numbered plans.
+
+----------------
+This is the version taken from https://sourceforge.net/projects/tsgp/files/POPF/  repository in particular latest file, i.e. popf2-11jun2011.tar.bz2
