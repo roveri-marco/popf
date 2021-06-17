@@ -76,12 +76,12 @@ void printRow(MILPSolver *, const int &, const int &);
 void nicerLPPrint(MILPSolver *lp)
 {
     const int cc = lp->getNumCols();
-    
+
     for (int ci = 0; ci < cc; ++ci) {
         cout << "C" << ci << ", " << lp->getColName(ci) << ", has range [" << lp->getColLower(ci) << "," << lp->getColUpper(ci) << "]\n";
     }
 
-    
+
     const int rc = lp->getNumRows();
 
     printRow(lp, 0, rc);
@@ -98,9 +98,9 @@ void printRow(MILPSolver * lp, const int & rs, const int & rc)
         cout << r << ",\"" << lp->getRowName(r) << "\",\"";
 
         vector<pair<int,double> > entries;
-        
+
         lp->getRow(r, entries);;
-        
+
         vector<pair<int,double> >::iterator thisRow = entries.begin();
         const vector<pair<int,double> >::iterator thisRowEnd = entries.end();
 
@@ -679,11 +679,11 @@ public:
     void letTheLPSetTimestamps() {
         copyTimestampsOnDestruction = false;
     }
-    
+
     inline const bool & willSetTimestamps() const {
         return copyTimestampsOnDestruction;
     }
-    
+
     inline void updateLPNeed(const bool & b) {
         if (b) needsLP = true;
     };
@@ -837,7 +837,7 @@ public:
             if (f) {
                 double w = distToZero[i];
                 if (w != 0.0) w = -w;
-                
+
                 #ifndef NDEBUG
                 if (w - withLPTimestamps[i]->lpTimestamp > 0.0000001) {
                     std::cerr << std::setprecision(6) << std::fixed << std::endl << "Error: step " << i << " has been given a timestamp of " << withLPTimestamps[i]->lpTimestamp << " by the LP, but the STP reported this had to be at least " << w << endl;
@@ -1321,7 +1321,7 @@ void LPScheduler::collateRelevantVariablesAndInvariants(InterestingMap & currInt
         for (; aaItr != aaEnd; ++aaItr) {
 
             if (correspondEndHasBeenInserted[*aaItr]) continue;
-            
+
             const map<int, ConstraintSet >::iterator onThisVariable = invariantsThisStepStartsOnVariableI[*aaItr].find(ciItr->first);
 
             if (onThisVariable == invariantsThisStepStartsOnVariableI[*aaItr].end()) {
@@ -1355,12 +1355,12 @@ void LPScheduler::recordVariablesInvolvedInThisStepsInvariants(const list<const 
 
     list<const Constraint*>::const_iterator invItr = invariants.begin();
     const list<const Constraint*>::const_iterator invEnd = invariants.end();
-    
+
     for (; invItr != invEnd; ++invItr) {
         const vector<int> & vars = (*invItr)->variables;
-        
+
         const int lim = vars.size();
-        
+
         for (int s = 0; s < lim; ++s) {
             if (lpDebug & 1024) {
                 cout << COLOUR_light_green << "Step has an invariant depending on " << *(RPGBuilder::getPNE(vars[s])) << COLOUR_default << endl;
@@ -1386,7 +1386,7 @@ void LPScheduler::addConstraintsToGetValuesOfVariablesNow(InterestingMap & currI
     for (; sItr != sItrEnd; ++sItr) {
 
         FluentTracking & tracker = finalNumericVars[sItr->first];
-        
+
         if (tracker.statusOfThisFluent != FluentTracking::FS_NORMAL) {
             if (lpDebug & 1) {
                 cout << "Not adding constraint to get value of " << *(RPGBuilder::getPNE(sItr->first)) << ": it is a metric tracking fluent";
@@ -1398,7 +1398,7 @@ void LPScheduler::addConstraintsToGetValuesOfVariablesNow(InterestingMap & currI
             }
             continue;
         }
-        
+
         if (lpDebug & 1) {
             cout << "Adding constraint at " << colIdx << " to get value of " << *(RPGBuilder::getPNE(sItr->first)) << " now";
             if (sItr->second) {
@@ -1424,7 +1424,7 @@ void LPScheduler::addConstraintsToGetValuesOfVariablesNow(InterestingMap & currI
             if (tracker.lastEffectValueVariable != -1) {
 
                 static vector<pair<int,double> > entries(4);
-                
+
                 entries[0].second = 1.0;
                 entries[1].second = -1.0;
                 entries[2].second = -tracker.activeGradient;
@@ -1442,7 +1442,7 @@ void LPScheduler::addConstraintsToGetValuesOfVariablesNow(InterestingMap & currI
 
             } else {
                 static vector<pair<int,double> > entries(3);
-                
+
                 entries[0].second = 1.0;
                 entries[1].second = -tracker.activeGradient;
                 entries[2].second = tracker.activeGradient;
@@ -1475,15 +1475,15 @@ void LPScheduler::addConstraintsToGetValuesOfVariablesNow(InterestingMap & currI
 
             if (tracker.lastEffectValueVariable != -1) {
                 static vector<pair<int,double> > entries(2);
-                
+
                 entries[0].second = 1.0;
                 entries[1].second = -1.0;
 
                 entries[0].first = colIdx;
                 entries[1].first = tracker.lastEffectValueVariable;
-                
+
                 lp->addRow(entries, 0.0, 0.0);
-                
+
                 if (nameLPElements) {
                     ostringstream namestream;
                     namestream << stepID << "delta-0-" << *(RPGBuilder::getPNE(sItr->first));
@@ -1520,9 +1520,9 @@ int LPScheduler::generateEndDetails(const VAL::time_spec & currTS, const int & a
             if (RPGBuilder::getRPGDEs(actID).back()->fixed.empty()) {
                 imaginaryMinMax[stepID] = EndDetails(dummyEnd, nextImaginaryEndVar, -1);
                 ++nextImaginaryEndVar;
-                
+
                 static vector<pair<int,double> > entries(2);
-                
+
                 entries[0].first = imaginaryMinMax[stepID].imaginaryMin;
                 entries[1].first = imaginaryMinMax[stepID].imaginaryMax;
                 entries[0].second = -1.0;
@@ -1577,26 +1577,26 @@ protected:
     list<int> * stableNextTime;
     list<int> * unstableNextTime;
 
-    
+
     void addNormalEffect(RPGBuilder::RPGNumericEffect* const ceItr) {
 
         static const vector<pair<int,double> > emptyEntries;
-        
+
         static const int varCount = RPGBuilder::getPNECount();
 
         const int currVar = ceItr->fluentIndex;
-        
+
         const FluentTracking & tracker = parent->finalNumericVars[currVar];
-        
+
         assert(tracker.statusOfThisFluent == FluentTracking::FS_NORMAL);
-        
+
         int sLim = ceItr->size;
 
         const bool wasStable = parent->stableVariable[currVar];
 
         vector<pair<int,double> > entries;
         entries.reserve(sLim);
-        
+
         bool isStable = ((tracker.activeGradientCount == 0) && (!parent->finalNumericVars[currVar].everHadADurationDependentEffect));
 
         bool hasDurationVar = false;
@@ -1610,17 +1610,17 @@ protected:
                     varIdx -= varCount;
                     currW = ceItr->weights[s];
                 }
-                
+
                 {
                     const map<int,int>::iterator atItr = applyTo->find(varIdx);
                     assert(atItr != applyTo->end());
                     entries.push_back(make_pair(atItr->second, currW));
                 }
-                
+
                 if (!parent->stableVariable[varIdx]) {
                     isStable = false;
                 }
-                
+
                 if (parent->finalNumericVars[varIdx].everHadADurationDependentEffect) {
                     parent->finalNumericVars[currVar].everHadADurationDependentEffect = true;
                 }
@@ -1637,11 +1637,11 @@ protected:
                     endStep = parent->timestampVars[stepID];
                     startStep = endStep - 1;
                 }
-                entries.push_back(make_pair(endStep, currW));                
+                entries.push_back(make_pair(endStep, currW));
                 entries.push_back(make_pair(startStep, ceItr->weights[s]));
-                                
+
                 if (parent->assertions) assert(entries.back().second != 0.0);
-                
+
                 isStable = false;
                 parent->finalNumericVars[currVar].everHadADurationDependentEffect = true;
 
@@ -1669,8 +1669,8 @@ protected:
         if (!(ceItr->isAssignment)) {
             {
                 const map<int,int>::iterator atItr = applyTo->find(currVar);
-                assert(atItr != applyTo->end());                
-                entries.push_back(make_pair(atItr->second, -1.0));            
+                assert(atItr != applyTo->end());
+                entries.push_back(make_pair(atItr->second, -1.0));
             }
             isStable = (isStable && wasStable);
         }
@@ -1708,12 +1708,12 @@ protected:
         untouched->erase(untItr);
 
         if (isStable && !wasStable) stableNextTime->push_back(currVar);
-        
+
         if (!isStable && wasStable) {
             if (lpDebug & 1) {
                 cout << "Effect " << *ceItr << " makes variable unstable next time\n";
             }
-                    
+
             unstableNextTime->push_back(currVar);
         }
 
@@ -1724,12 +1724,12 @@ protected:
         static const int varCount = RPGBuilder::getPNECount();
 
         const int currVar = ceItr->fluentIndex;
-        
+
         FluentTracking & tracker = parent->finalNumericVars[currVar];
-        
+
         assert(tracker.statusOfThisFluent == FluentTracking::FS_ORDER_INDEPENDENT);
         assert(!ceItr->isAssignment);
-        
+
         const int sLim = ceItr->size;
 
         for (int s = 0; s < sLim; ++s) {
@@ -1740,15 +1740,15 @@ protected:
                     varIdx -= varCount;
                     thisW = -thisW;
                 }
-                
+
                 {
                     const map<int,int>::iterator atItr = applyTo->find(varIdx);
-                    assert(atItr != applyTo->end());                    
+                    assert(atItr != applyTo->end());
                     tracker.orderIndependentValueTerms.insert(make_pair(atItr->second, 0.0)).first->second += thisW;
                 }
 
                 assert(parent->stableVariable[varIdx]);
-                
+
             } else if (varIdx == -3) {
                 int startStep;
                 int endStep;
@@ -1760,7 +1760,7 @@ protected:
                     endStep = parent->timestampVars[stepID];
                     startStep = endStep - 1;
                 }
-                
+
                 tracker.orderIndependentValueTerms.insert(make_pair(endStep, 0.0)).first->second += thisW;
                 tracker.orderIndependentValueTerms.insert(make_pair(startStep, 0.0)).first->second -= thisW;
 
@@ -1774,16 +1774,16 @@ protected:
 
     }
 
-    
+
     const char * label;
     mutable int suffix;
-        
+
 public:
-    map<int, int> * applyTo;    
+    map<int, int> * applyTo;
     map<int, int> * output;
-    
-    
-    
+
+
+
     ConstraintAdder(LPScheduler * const parentIn, FFEvent & ev, const char * const labelIn, const int & stepIDIn, map<int, int> & applyToIn)
         : parent(parentIn), currEvent(ev), stepID(stepIDIn),
           untouched((InterestingMap*)0), stableNextTime((list<int>*)0), unstableNextTime((list<int>*)0),
@@ -1807,7 +1807,7 @@ public:
         const int cSize = csItr->weights.size();
 
         vector<pair<int,double> > entries(cSize);
-        
+
         if (LPScheduler::lpDebug & 1024) {
             cout << "Adding constraint: ";
             for (int s = 0 ; s < cSize; ++s) {
@@ -1851,7 +1851,7 @@ public:
     void operator()(RPGBuilder::RPGNumericEffect* const ceItr) {
 
         const int currVar = ceItr->fluentIndex;
-        
+
         FluentTracking & tracker = parent->finalNumericVars[currVar];
 
         switch (tracker.statusOfThisFluent) {
@@ -1870,7 +1870,7 @@ public:
                 return;
             }
         }
-        
+
     }
 
 };
@@ -1883,14 +1883,14 @@ struct LPScheduler::DurationAdder {
     const int stepID;
     map<int, int> * beforeStep;
     const vector<bool> & stableVariable;
-    
+
     int startToUse;
     int endToUse;
 
     VAL::comparison_op durationType;
 
     bool durationIsFixed;
-    
+
     DurationAdder(LPScheduler * const parentIn, FFEvent & ev, const int & stepIDIn, map<int, int> & beforeStepIn, const vector<bool> & stableVariableIn)
             : parent(parentIn), durationID(0), currEvent(ev), stepID(stepIDIn), beforeStep(&beforeStepIn), stableVariable(stableVariableIn),
             startToUse(-1), endToUse(-1), durationType(VAL::E_EQUALS), durationIsFixed(true) {
@@ -1906,15 +1906,15 @@ struct LPScheduler::DurationAdder {
 
         const int vSize = currDE->weights.size();
         vector<pair<int,double> > entries(2 + vSize);
-        
+
         entries[0] = make_pair(endToUse, 1.0);
         entries[1] = make_pair(startToUse, -1.0);
-        
+
         assert(endToUse < parent->lp->getNumCols());
         assert(startToUse < parent->lp->getNumCols());
-        
+
         bool allVariablesAreStable = true;
-        
+
         {
             for (int v = 0; v < vSize; ++v) {
                 entries[2+v].second = -(currDE->weights[v]);
@@ -1948,7 +1948,7 @@ struct LPScheduler::DurationAdder {
         switch (durationType) {
         case VAL::E_EQUALS: {
             if ((lpDebug & 1) && !vSize) cout << "Simple constant fixed duration: " << currDE->constant << "\n";
-                        
+
             parent->lp->addRow(entries, currDE->constant, currDE->constant);
             if (parent->nameLPElements) {
                 int constrIdx = parent->lp->getNumRows() - 1;
@@ -1962,7 +1962,7 @@ struct LPScheduler::DurationAdder {
         }
         case VAL::E_GREATEQ: {
             if ((lpDebug & 1) && !vSize) cout << "Simple constant minimum duration: " << currDE->constant << "\n";
-                        
+
             parent->lp->addRow(entries, currDE->constant, LPinfinity);
             if (parent->nameLPElements) {
                 int constrIdx = parent->lp->getNumRows() - 1;
@@ -1974,11 +1974,11 @@ struct LPScheduler::DurationAdder {
             }
             break;
         }
-        case VAL::E_LESSEQ: {            
-            
+        case VAL::E_LESSEQ: {
+
             if ((lpDebug & 1) && !vSize) cout << "Simple constant maximum duration: " << currDE->constant << "\n";
-            
-            
+
+
             parent->lp->addRow(entries, 0.0, currDE->constant);
             if (parent->nameLPElements) {
                 int constrIdx = parent->lp->getNumRows() - 1;
@@ -2022,7 +2022,7 @@ LPScheduler::LPScheduler(const MinimalState & theState,
 
     static vector<vector<pair<double, double> > > & actionTSBounds = TemporalAnalysis::getActionTSBounds();
 
-    includeMetricTrackingVariables = setObjectiveToMetric;    
+    includeMetricTrackingVariables = setObjectiveToMetric;
     stableVariable = vector<bool>(numVars, true);
 
     tsVarCount = header.size() + now.size();
@@ -2069,10 +2069,10 @@ LPScheduler::LPScheduler(const MinimalState & theState,
             #endif
         }
 
-        if (cd) {                            
+        if (cd) {
             if (!paranoia) {
                 cd->distsToLPStamps();
-                cd->distsToLPMinStamps();                
+                cd->distsToLPMinStamps();
             }
 
             cd->letTheLPSetTimestamps();
@@ -2116,7 +2116,7 @@ LPScheduler::LPScheduler(const MinimalState & theState,
      * have expired.  This is used in combination with the previous variable.
      */
     vector<bool> correspondEndHasBeenInserted(tsVarCount,false);
-    
+
     /*
      * Step that comes after all future end actions.  -1 if we don't need this constraint
      * (i.e. we aren't imposing a strict total order.  @see TotalOrderTransformer
@@ -2185,9 +2185,9 @@ LPScheduler::LPScheduler(const MinimalState & theState,
                     } else {
                         if (lpDebug & 512) {
                             cout << "The TO constraint means " << stepThatMustPrecedeFutureEnds << " precedes " << stepID << ", as it already was doing\n";
-                        }                        
+                        }
                     }
-                    
+
                 }
 
                 if (!fanIn[stepID]) {
@@ -2229,7 +2229,7 @@ LPScheduler::LPScheduler(const MinimalState & theState,
 
     for (int i = 0; i < numVars; ++i) {
         finalNumericVars[i] = FluentTracking(initialValues[i]);
-        
+
         if (NumericAnalysis::getDominanceConstraints()[i] == NumericAnalysis::E_IRRELEVANT) {
             finalNumericVars[i].statusOfThisFluent = FluentTracking::FS_IGNORE;
         } else if (NumericAnalysis::getDominanceConstraints()[i] == NumericAnalysis::E_METRICTRACKING) {
@@ -2241,7 +2241,7 @@ LPScheduler::LPScheduler(const MinimalState & theState,
                 finalNumericVars[i].statusOfThisFluent = FluentTracking::FS_IGNORE;
             }
         }
-        
+
     }
 
     timestampVars.reserve(tsVarCount);
@@ -2299,7 +2299,7 @@ LPScheduler::LPScheduler(const MinimalState & theState,
     timestampToUpdateStep = -1;
     timestampToUpdatePartnerVar = -1;
     timestampToUpdatePartnerStep = -1;
-    
+
     if ((lpDebug & 1) && !tsVarCount) cout << "No actions in plan\n";
 
     int actuallyVisited = 0;
@@ -2405,7 +2405,7 @@ LPScheduler::LPScheduler(const MinimalState & theState,
 
 
         if (currTS == VAL::E_AT_START) {
-            correspondingStart[stepID] = stepID;            
+            correspondingStart[stepID] = stepID;
         } else if (currTS != VAL::E_AT) {
             correspondingStart[stepID] = correspondingStart[currEvent.pairWithStep];
             //correspondEndHasBeenInserted[currEvent.pairWithStep] = true;
@@ -2460,7 +2460,7 @@ LPScheduler::LPScheduler(const MinimalState & theState,
                             static vector<pair<int,double> > entries(2);
                             entries[0].second = 1.0;
                             entries[1].second = -1.0;
-                            
+
                             entries[0].first = currVar;
                             entries[1].first = prevVar;
 
@@ -2527,15 +2527,15 @@ LPScheduler::LPScheduler(const MinimalState & theState,
                             boundForSuccessors = currEvent.lpMinTimestamp;
                         }
                     }
-                } 
-               
+                }
+
                 const double workingLower = actionTSBounds[actID][currTS == VAL::E_AT_START ? 0 : 1].first;
-                
+
                 if (boundForSuccessors < workingLower) {
                     boundForSuccessors = workingLower;
                 }
-                                               
-                
+
+
                 lp->setColLower(currVar, boundForSuccessors);
 
                 /* if (implicitEnd) {
@@ -2686,14 +2686,14 @@ LPScheduler::LPScheduler(const MinimalState & theState,
                     const InterestingMap::iterator sItrEnd = untouched.end();
 
                     for (; sItr != sItrEnd; ++sItr, ++colIdx, ++constrIdx) {
-                        
+
                         if (finalNumericVars[sItr->first].statusOfThisFluent != FluentTracking::FS_NORMAL) {
                             --colIdx;
                             --constrIdx;
                             continue;
                         }
-                        
-                        
+
+
                         #ifndef NDEBUG
                         bool foundCTS = false;
                         if (sItr->second) {
@@ -2720,11 +2720,11 @@ LPScheduler::LPScheduler(const MinimalState & theState,
                         entries[1].first = beforeStep[sItr->first];
 
                         assert(lp->getNumCols() == colIdx);
-                        
+
                         lp->addCol(emptyEntries, -LPinfinity, LPinfinity, MILPSolver::C_REAL);
 
                         assert((lp->getNumCols() -1) == colIdx);
-                        
+
                         if (nameLPElements) {
                             ostringstream namestream;
                             namestream << *(RPGBuilder::getPNE(sItr->first));
@@ -2754,10 +2754,10 @@ LPScheduler::LPScheduler(const MinimalState & theState,
                     cout << COLOUR_light_green << "Recording invariants started at " << stepID << COLOUR_default << endl;
                 }
                 recordVariablesInvolvedInThisStepsInvariants(constraints[actID][1], invariantsThisStepStartsOnVariableI[stepID]);
-                
+
             } else if (currTS == VAL::E_AT_END) {
                 activeInvariants.erase(constraints[actID][1].begin(), constraints[actID][1].end());
-                correspondEndHasBeenInserted[currEvent.pairWithStep] = true;               
+                correspondEndHasBeenInserted[currEvent.pairWithStep] = true;
             }
 
             adder.applyTo = constrsOver;
@@ -2765,7 +2765,7 @@ LPScheduler::LPScheduler(const MinimalState & theState,
             for_each(activeInvariants.begin(), activeInvariants.end(), adder);
 
             bool durationIsFixed = true;
-            
+
             if (currTS == VAL::E_AT_START && !RPGBuilder::getRPGDEs(actID).empty()) {
 
 
@@ -2792,7 +2792,7 @@ LPScheduler::LPScheduler(const MinimalState & theState,
                     for_each(currDuration->max.begin(), currDuration->max.end(), durAdder);
 
                 }
-                
+
                 durationIsFixed = durAdder.durationIsFixed;
 
             }
@@ -2819,9 +2819,9 @@ LPScheduler::LPScheduler(const MinimalState & theState,
                     currTracker.lastEffectValueVariable = (*constrsOver)[geItr->first];
                     currTracker.postLastEffectValue = NaN;
                     stableVariable[geItr->first] = false;
-                    
+
                     if (!durationIsFixed) {
-                        
+
                         // If an action has a non-constant-valued duration AND a cts effect on a variable, then we need to
                         // mark that that variable is subject to duration-dependent change.  Otherwise, it will be considered
                         // stable once the action has ended; whereas, really, the time it ends at (and hence the
@@ -2829,7 +2829,7 @@ LPScheduler::LPScheduler(const MinimalState & theState,
                         if (lpDebug & 1) cout << "Variable " << *(RPGBuilder::getPNE(geItr->first)) << " becomes duration-dependent\n";
                         finalNumericVars[geItr->first].everHadADurationDependentEffect = true;
                     }
-                    
+
                     if (lpDebug & 1) {
                         cout << "Variable " << *(RPGBuilder::getPNE(geItr->first)) << " becomes unstable due to CTS effect; gradient is now " << currTracker.activeGradient << "\n";
                     }
@@ -2843,7 +2843,7 @@ LPScheduler::LPScheduler(const MinimalState & theState,
                 for (; geItr != geEnd; ++geItr) {
 
                     FluentTracking & currTracker = finalNumericVars[geItr->first];
-                    
+
                     if (currTracker.statusOfThisFluent == FluentTracking::FS_NORMAL) {
                         if (!--(currTracker.activeGradientCount)) {
                             currTracker.activeGradient = 0.0;
@@ -2854,23 +2854,23 @@ LPScheduler::LPScheduler(const MinimalState & theState,
                         } else {
                             currTracker.activeGradient -= geItr->second.constant;
                         }
-                        
+
                     } else if (currTracker.statusOfThisFluent == FluentTracking::FS_ORDER_INDEPENDENT) {
-                        
+
                         // For order-independent change, we integrate the effect that has just finished -
                         // add gradient * (end - start) to the terms
-                        
+
                         currTracker.orderIndependentValueTerms.insert(make_pair(timestampVars[stepID], 0.0)).first->second += geItr->second.constant;
                         currTracker.orderIndependentValueTerms.insert(make_pair(timestampVars[correspondingStart[stepID]], 0.0)).first->second -= geItr->second.constant;
-                        
+
                         if (lpDebug & 1) {
                             cout << "Noting order-independent CTS effect on " << *(RPGBuilder::getPNE(geItr->first)) << endl;
                             cout << " = " << geItr->second.constant << " * (" << lp->getColName(timestampVars[stepID]);
                             cout << " - " << lp->getColName(timestampVars[correspondingStart[stepID]]) << ")\n";
-                                 
+
                         }
-                        
-                        
+
+
                     }
                 }
 
@@ -2956,17 +2956,17 @@ LPScheduler::LPScheduler(const MinimalState & theState,
     if (actuallyVisited < mustVisit) {
         if (lpDebug & 2) {
             cout << "Never visited:\n";
-            
+
             {
                 int stepID = 0;
                 for (int pass = 0; pass < 2; ++pass) {
                     list<FFEvent> & currList = (pass ? now : header);
-                    
+
                     list<FFEvent>::iterator citr = currList.begin();
                     const list<FFEvent>::iterator cend = currList.end();
-                    
+
                     for (; citr != cend; ++citr, ++stepID, ++mustVisit) {
-                        
+
                         if (fanIn[stepID]) {
                             cout << stepID << ": ";
                             if (planAsAVector[stepID]->action) {
@@ -2978,11 +2978,11 @@ LPScheduler::LPScheduler(const MinimalState & theState,
                             }
                             cout << endl;
                         }
-                        
+
                     }
                 }
             }
-        
+
         }
         solved = false;
         return;
@@ -3004,8 +3004,8 @@ LPScheduler::LPScheduler(const MinimalState & theState,
 
         // for fluents we are ignoring, or putting straight into the metric, we can skip this
         if (currTracker.statusOfThisFluent != FluentTracking::FS_NORMAL) continue;
-        
-        // if no gradients are active, 'lastEffectValueVariable' is adequate as it can't have changed since then        
+
+        // if no gradients are active, 'lastEffectValueVariable' is adequate as it can't have changed since then
         if (!currTracker.activeGradientCount) continue;
 
         lp->addCol(emptyEntries, -LPinfinity, LPinfinity, MILPSolver::C_REAL);
@@ -3022,37 +3022,37 @@ LPScheduler::LPScheduler(const MinimalState & theState,
 
         int nowTimeIdx;
         if (Globals::totalOrder) {
-            
+
             if (totalOrderNowTimestamp == -1) {
-                lp->addCol(emptyEntries, 0.0, LPinfinity, MILPSolver::C_REAL);                
+                lp->addCol(emptyEntries, 0.0, LPinfinity, MILPSolver::C_REAL);
                 nowTimeIdx = totalOrderNowTimestamp = lp->getNumCols() - 1;
-                
+
                 if (nameLPElements) {
                     lp->setColName(nowTimeIdx, "now-t");
                 }
-                
+
                 static vector<pair<int,double> > entries(2);
-                
+
                 entries[0].first = nowTimeIdx;
-                
+
                 assert(timestampToUpdateVar != -1);
-                
+
                 entries[1].first = timestampToUpdateVar;
                 entries[0].second = 1.0;
                 entries[1].second = -1.0;
-                
+
                 // 'now' must come no sooner than epsilon after the most recent step
                 lp->addRow(entries, EPSILON, LPinfinity);
-                
+
                 if (nameLPElements) {
                     const int constrIdx = lp->getNumRows() - 1;
                     lp->setRowName(constrIdx, "last-before-now-t");
                 }
-                
-            } else {            
+
+            } else {
                 nowTimeIdx = totalOrderNowTimestamp;
             }
-            
+
         } else {
 
             lp->addCol(emptyEntries, 0.0, LPinfinity, MILPSolver::C_REAL);
@@ -3072,7 +3072,7 @@ LPScheduler::LPScheduler(const MinimalState & theState,
 
             {
                 static vector<pair<int,double> > entries(2);
-                
+
                 entries[0].first = nowTimeIdx;
                 entries[1].first = currTracker.lastEffectTimestampVariable;
                 entries[0].second = 1.0;
@@ -3090,12 +3090,12 @@ LPScheduler::LPScheduler(const MinimalState & theState,
                 }
             }
         }
-        
+
         // now need to encode v(now) = v(last) + grad * (tnow - tlast)
         // i.e. v(now) - v(last) - grad * tnow + grad * tlast = 0
         {
             static vector<pair<int,double> > entries(4);
-            
+
             entries[0].first = nowValueIdx;
             entries[1].first = currTracker.lastEffectValueVariable;
             entries[2].first = nowTimeIdx;
@@ -3143,13 +3143,13 @@ LPScheduler::LPScheduler(const MinimalState & theState,
 
             // skip for fluents we are ignoring, or adding straight to the objective
             if (currTracker.statusOfThisFluent != FluentTracking::FS_NORMAL) continue;
-            
-            
+
+
             // now need to encode tend >= tnow
             // i.e. tend - tnow >= 0
             {
                 static vector<pair<int,double> > entries(2);
-                
+
                 entries[0].first = timestampVars[stepID];
                 entries[1].first = currTracker.lastEffectTimestampVariable;
                 entries[0].second = 1.0;
@@ -3379,7 +3379,7 @@ LPScheduler::LPScheduler(const MinimalState & theState,
             return;
         }
     }
-    
+
 
 
 //    if (lpDebug & 2) print_lp(lp);
@@ -3397,7 +3397,7 @@ LPScheduler::LPScheduler(const MinimalState & theState,
     }
 
     solved = lp->solve(false);
-    
+
     if (lpDebug & 8) {
         if (solved) {
             cout << "Solve called succeeded\n";
@@ -3413,11 +3413,11 @@ LPScheduler::LPScheduler(const MinimalState & theState,
         assert(!shouldFail);
 
         const int loopLim = planAsAVector.size();
-        
-        const double * const partialSoln = lp->getPartialSolution(numVars, numVars + loopLim);        
+
+        const double * const partialSoln = lp->getPartialSolution(numVars, numVars + loopLim);
 
         assert(!cd || !cd->willSetTimestamps());
-        
+
         for (int stepID = 0; stepID < loopLim; ++stepID) {
             FFEvent * const itr = planAsAVector[stepID];
             if (itr->time_spec == VAL::E_AT) {
@@ -3428,28 +3428,28 @@ LPScheduler::LPScheduler(const MinimalState & theState,
             if (lpDebug & 2) {
                 cout << "Timestamp of " << *(itr->action) << " (var " << timestampVars[stepID] << ") ";
                 if (itr->time_spec == VAL::E_AT_START) cout << " start = "; else cout << "end = ";
-                cout << itr->lpTimestamp << "\n";                
+                cout << itr->lpTimestamp << "\n";
             }
         }
 
         if (!setObjectiveToMetric) {
-            
+
             if (Globals::paranoidScheduling && cd && !cd->doLPSolve()) {
                 cd->distsToLPMinStampsAndCheck(planAsAVector);
             }
-            
+
             if (optimised) {
                 if (timestampToUpdate) {
                     pushTimestampToMin();
                 }
-            }                                        
-                                
-        
+            }
+
+
             if (Globals::paranoidScheduling && cd && !cd->doLPSolve()) {
                 cd->distsToLPStamps(justAppliedStep);
             }
         }
-        
+
         /*if (lpDebug & 8 && !mutexCols.empty()) {
             cout << "Values of TIL mutex column variables:\n";
             {
@@ -3460,7 +3460,7 @@ LPScheduler::LPScheduler(const MinimalState & theState,
                     assert(lp->isColumnBinary(*mcItr));
                 }
             }
-            
+
             cout << "Values of TIL mutex rows:\n";
             {
                 list<int>::const_iterator mcItr = mutexRows.begin();
@@ -3551,7 +3551,7 @@ const LPScheduler::Constraint* LPScheduler::buildConstraint(RPGBuilder::RPGNumer
             toReturn.variables[0] = pre.LHSVariable;
         } else {
             if (lpDebug & 4) cout << "Constraint on AV: \n";
-            
+
             RPGBuilder::ArtificialVariable & av = RPGBuilder::getArtificialVariable(pre.LHSVariable);
             const int loopLim = av.size;
             toReturn.weights = vector<double>(loopLim);
@@ -3622,7 +3622,7 @@ void LPScheduler::initialise()
     interesting.resize(actCount);
     boringAct.resize(actCount, vector<pair<bool,bool> >(2, pair<bool,bool>(true,true)));
     pointsThatWouldBeMutexWithOptimisationTILs.resize(actCount, vector<vector<double> >(2));
-    
+
     if (initDebug) cout << "Initialising LP lookups for " << actCount << " actions\n";
 
     for (int a = 0; a < actCount; ++a) {
@@ -3663,7 +3663,7 @@ void LPScheduler::initialise()
 
                 boringAct[a][0].first = allMetricTracking;
                 boringAct[a][1].first = allMetricTracking;
-                
+
                 boringAct[a][0].second = false;
                 boringAct[a][1].second = false;
 
@@ -3723,8 +3723,8 @@ void LPScheduler::initialise()
 
                 for (int pass = 0; pass < 3; ++pass) {
                     list<int> & currList = (pass ? (pass == 2 ? RPGBuilder::getEndPreNumerics()[a] : RPGBuilder::getInvariantNumerics()[a]) : RPGBuilder::getStartPreNumerics()[a]);
-                    
-                    
+
+
                     /*if (pass == 1) {
                         cout << "In LP: " << *(RPGBuilder::getInstantiatedOp(a)) << " has " << currList.size() << " numeric invariants\n";
                     }*/
@@ -3751,21 +3751,25 @@ void LPScheduler::initialise()
                 }
 
             }
-            
+
             if (!RPGBuilder::getRPGDEs(a).empty()) {
                 RPGBuilder::RPGDuration* const currDuration = RPGBuilder::getRPGDEs(a).back();
                 for (int pass = 0; pass < 3; ++pass) {
                     const list<RPGBuilder::DurationExpr*> & currDurs = (*currDuration)[pass];
-                    
+
                     list<RPGBuilder::DurationExpr*>::const_iterator dItr = currDurs.begin();
                     const list<RPGBuilder::DurationExpr*>::const_iterator dEnd = currDurs.end();
-                    
+
                     for (; dItr != dEnd; ++dItr) {
                         const int vCount = (*dItr)->variables.size();
-                        
+
                         int vv;
                         for (int i = 0; i < vCount; ++i) {
-                            vv = (*dItr)->variables[i];
+			  #if STOCHASTICDURATIONS
+                            vv = (*dItr)->variables[i].first;
+                          #else
+			    vv = (*dItr)->variables[i];
+                          #endif
                             if (vv >= 0) {
                                 if (vv >= numVars) vv -= numVars;
                                 interesting[a][0].insertPrecondition(vv);
@@ -3774,33 +3778,33 @@ void LPScheduler::initialise()
                     }
                 }
             }
-            
-            
+
+
             {
                 pointsThatWouldBeMutexWithOptimisationTILs[a].resize(2);
-                
+
                 const list<RPGBuilder::ConditionalEffect> & ceffs = RPGBuilder::getActionsToConditionalEffects()[a];
 
                 list<RPGBuilder::ConditionalEffect>::const_iterator ceffItr = ceffs.begin();
                 const list<RPGBuilder::ConditionalEffect>::const_iterator ceffEnd = ceffs.end();
-                
+
                 for (; ceffItr != ceffEnd; ++ceffItr) {
-                    
+
                     const list<pair<Literal*, VAL::time_spec> > & conds = ceffItr->getPropositionalConditions();
-                    
+
                     list<pair<Literal*, VAL::time_spec> >::const_iterator condItr = conds.begin();
                     const list<pair<Literal*, VAL::time_spec> >::const_iterator condEnd = conds.end();
-                    
+
                     for (; condItr != condEnd; ++condItr) {
                         const list<pair<double,double> > * windows = TemporalAnalysis::factIsVisibleInWindows(condItr->first);
-                        
+
                         if (!windows) {
                             continue;
                         }
-                        
+
                         list<pair<double,double> >::const_iterator wItr = windows->begin();
                         const list<pair<double,double> >::const_iterator wEnd = windows->end();
-                        
+
                         for (; wItr != wEnd; ++wItr) {
                             if (wItr->second == DBL_MAX) break;
                             if (condItr->second == VAL::E_AT_START) {
@@ -3860,112 +3864,112 @@ void LPScheduler::initialise()
 
 void LPScheduler::addConstraintsForTILMutexes(const int & timestampVar, const vector<double> & mutexTimestamps)
 {
-    
+
     if (mutexTimestamps.empty()) return;
-        
+
     static const vector<pair<int,double> > emptyEntries;
-    
+
     static vector<pair<int,double> > binaryConstraint(2);
-    
+
     const int mtCount = mutexTimestamps.size();
-    
+
     const pair<double,double> tsBounds = make_pair(lp->getColLower(timestampVar), lp->getColUpper(timestampVar));
-    
+
     for (int mt = 0; mt < mtCount; ++mt) {
         if (mutexTimestamps[mt] < tsBounds.first || mutexTimestamps[mt] > tsBounds.second) {
             // no need to forbid the variable from taking a value which it could not anyway
             continue;
         }
-        
-        
+
+
         // make a variable that takes the value 1 if timestampVar falls after mutexTimestamps[mt],
         // or 0 if it falls before
-        
+
         lp->addCol(emptyEntries, 0, 1, MILPSolver::C_BOOL);
-        
+
         const int beforeOrAfter = lp->getNumCols() - 1;
-        
+
         //mutexCols.push_back(beforeOrAfter);
-        
+
         if (nameLPElements) {
             ostringstream n;
             n << "col" << timestampVar << "neq" << mutexTimestamps[mt];
             const string cname(n.str());
             lp->setColName(beforeOrAfter, cname);
         }
-        
+
         // First, make the setting of this variable force upper and lower bounds
-        
+
         binaryConstraint[0].first = timestampVar;
         binaryConstraint[0].second = 1.0;
-        
+
         binaryConstraint[1].first = beforeOrAfter;
         binaryConstraint[1].second = -N;
-        
+
         lp->addRow(binaryConstraint, -LPinfinity, mutexTimestamps[mt] - SAFE);
-        
+
         //mutexRows.push_back(lp->getNumRows() - 1);
-        
+
         if (nameLPElements) {
             ostringstream n;
             n << "set" << timestampVar << "lt" << mutexTimestamps[mt];
             const string cname(n.str());
             lp->setRowName(lp->getNumRows() - 1, cname);
         }
-        
+
         binaryConstraint[0].first = timestampVar;
         binaryConstraint[0].second = 1.0;
-        
+
         binaryConstraint[1].first = beforeOrAfter;
         binaryConstraint[1].second = -(mutexTimestamps[mt] + SAFE);
-        
+
         lp->addRow(binaryConstraint, 0, LPinfinity);
-        
+
         //mutexRows.push_back(lp->getNumRows() - 1);
-        
+
         if (nameLPElements) {
             ostringstream n;
             n << "set" << timestampVar << "gt" << mutexTimestamps[mt];
             const string cname(n.str());
             lp->setRowName(lp->getNumRows() - 1, cname);
         }
-        
+
         // Second, make the setting of the timestamp force the correct value of this variable
-        
+
         binaryConstraint[0].first = timestampVar;
         binaryConstraint[0].second = -1.0;
-        
+
         binaryConstraint[1].first = beforeOrAfter;
         binaryConstraint[1].second = N;
-        
+
         lp->addRow(binaryConstraint, -(mutexTimestamps[mt] - SAFE), LPinfinity);
-        
+
         //mutexRows.push_back(lp->getNumRows() - 1);
-        
+
         if (nameLPElements) {
             ostringstream n;
             n << "if" << timestampVar << "gt" << mutexTimestamps[mt];
             const string cname(n.str());
             lp->setRowName(lp->getNumRows() - 1, cname);
         }
-        
+
         binaryConstraint[0].first = timestampVar;
         binaryConstraint[0].second = 1.0;
-        
+
         binaryConstraint[1].first = beforeOrAfter;
         binaryConstraint[1].second = -N;
-        
+
         lp->addRow(binaryConstraint, mutexTimestamps[mt] + SAFE - N, LPinfinity);
-        
+
         //mutexRows.push_back(lp->getNumRows() - 1);
-        
+
         if (nameLPElements) {
             ostringstream n;
             n << "if" << timestampVar << "lt" << mutexTimestamps[mt];
             const string cname(n.str());
             lp->setRowName(lp->getNumRows() - 1, cname);
         }
-        
+
     }
 }
 
@@ -3979,21 +3983,21 @@ void LPScheduler::updateStateFluents(vector<double> & min, vector<double> & max,
         return;
     }
     if (timestampToUpdateVar == -1) {
-        return;        
+        return;
     }
-        
+
     assert(solved);
 
     if (workOutFactLayerZeroBoundsStraightAfterRecentAction) {
         timeAtWhichValueIsDefined.resize(min.size(), -1.0);
     }
-    
+
     map<int,double> knownMinValueOfColumn;
-    
+
     knownMinValueOfColumn.insert(make_pair(timestampToUpdateVar,lp->getColLower(timestampToUpdateVar)));
-    
+
     static const bool optimised = true;
-    
+
     for (int s = 0; s < numVars; ++s) {
         if (   !stableVariable[s]
             && (NumericAnalysis::getDominanceConstraints()[s] != NumericAnalysis::E_METRICTRACKING)
@@ -4005,40 +4009,40 @@ void LPScheduler::updateStateFluents(vector<double> & min, vector<double> & max,
 
             bool nonDDAmethod = false;
             double oldColUpper;
-        
+
             if (workOutFactLayerZeroBoundsStraightAfterRecentAction) {
                 if (!finalNumericVars[s].everHadADurationDependentEffect) {
                     const int relevantTSVar = finalNumericVars[s].lastEffectTimestampVariable;
                     oldColUpper = lp->getColUpper(relevantTSVar);
                     nonDDAmethod = true;
-                    
+
                     pair<map<int,double>::iterator,bool> knownMin = knownMinValueOfColumn.insert(make_pair(relevantTSVar,0.0));
-                    
+
                     if (knownMin.second) {
                         previousObjectiveVar = relevantTSVar;
                         lp->setObjCoeff(previousObjectiveVar, 1.0);
                         lp->setMaximiseObjective(false);
                         lp->solve(false);
-                        
+
                         knownMin.first->second = lp->getSingleSolutionVariableValue(previousObjectiveVar);
                         lp->setObjCoeff(previousObjectiveVar, 0.0);
-                        
+
                         if (optimised) {
                             // since we minimised the value of this variable, we can use this as its lower bound from hereon
                             lp->setColLower(previousObjectiveVar, knownMin.first->second);
                         }
                     }
-                    
+
                     timeAtWhichValueIsDefined[s] = knownMin.first->second;
-                    
+
                     // temporary additional constraint to make sure now is as early as it can be
                     lp->setColUpper(relevantTSVar, timeAtWhichValueIsDefined[s]);
-                    
-                                                                
-                }                
+
+
+                }
             }
-            
-            
+
+
             previousObjectiveVar = finalNumericVars[s].lastEffectValueVariable;
             lp->setObjCoeff(previousObjectiveVar, 1.0);
 
@@ -4054,21 +4058,21 @@ void LPScheduler::updateStateFluents(vector<double> & min, vector<double> & max,
 
             lp->setMaximiseObjective(false);
             lp->solve(false);
-            
+
             const double mvTwo = lp->getSingleSolutionVariableValue(previousObjectiveVar);
             min[s] = mvTwo;
             if (!nonDDAmethod && optimised) {
                 lp->setColLower(previousObjectiveVar, mvTwo);
             }
-            
+
             if (nonDDAmethod) {
                 // restore previous upper bound rather than the tighter one used
                 lp->setColUpper(finalNumericVars[s].lastEffectTimestampVariable, oldColUpper);
 
                 if (lpDebug & 1) cout << mvTwo << "," << mv << "] from t=" << timeAtWhichValueIsDefined[s] << " onwards\n";
-                                            
+
             } else {
-                if (lpDebug & 1) cout << mvTwo << "," << mv << "]\n";                            
+                if (lpDebug & 1) cout << mvTwo << "," << mv << "]\n";
             }
 
         } else {
@@ -4085,35 +4089,35 @@ void LPScheduler::extrapolateBoundsAfterRecentAction(const list<StartEvent> * st
         return;
     }
     if (timestampToUpdateVar == -1) {
-        return;        
+        return;
     }
     if (timeAtWhichValueIsDefined.empty()) {
         return;
     }
-            
+
     assert(solved);
-       
+
     vector<RPGBuilder::LinearEffects*> & LD = RPGBuilder::getLinearDiscretisation();
-    
+
     list<StartEvent>::const_iterator evItr = startEventQueue->begin();
     const list<StartEvent>::const_iterator evEnd = startEventQueue->end();
-    
+
     for (; evItr != evEnd; ++evItr) {
-        
+
         const RPGBuilder::LinearEffects* currLD = LD[evItr->actID];
         if (!currLD) continue;
-                               
+
         const double multiplier = evItr->maxDuration - evItr->elapsed;
-        
+
         const vector<int> & varList = currLD->vars;
         const vector<RPGBuilder::LinearEffects::EffectExpression> & changeList = currLD->effects[0];
-        
+
         const int effCount = varList.size();
-        
+
         for (int e = 0; e < effCount; ++e) {
             if (timeAtWhichValueIsDefined[varList[e]] < 0.0) {
                 // ignore effects upon variables where the -/ method wasn't used anyway
-                continue;                
+                continue;
             }
             if (changeList[e].constant > 0.0) {
                 max[varList[e]] += changeList[e].constant * multiplier;
@@ -4123,7 +4127,7 @@ void LPScheduler::extrapolateBoundsAfterRecentAction(const list<StartEvent> * st
                 min[varList[e]] += changeList[e].constant * multiplier;
                 //cout << "Boosted lower bound on " << *(RPGBuilder::getPNE(varList[e])) << endl;
             }
-        }        
+        }
     }
 }
 
@@ -4191,7 +4195,7 @@ bool LPScheduler::isSolution(const MinimalState & state, list<FFEvent> & header,
 
         vector<pair<int,double> > entries;
         entries.reserve(cSize);
-        
+
         double offset = 0.0;
         int v;
         for (int s = 0 ; s < cSize; ++s) {
@@ -4205,7 +4209,7 @@ bool LPScheduler::isSolution(const MinimalState & state, list<FFEvent> & header,
                 if (lpDebug & 1) {
                     cout << "Value of " << (*gItr)->variables[s] << " is constant: " << finalNumericVars[(*gItr)->variables[s]].postLastEffectValue << endl;
                 }
-                
+
                 offset += ((*gItr)->weights[s] * finalNumericVars[(*gItr)->variables[s]].postLastEffectValue);
             }
         }
@@ -4239,7 +4243,7 @@ bool LPScheduler::isSolution(const MinimalState & state, list<FFEvent> & header,
 
         for (; comesAfter != comesAfterEnd; ++comesAfter) {
             static vector<pair<int,double> > entries(2);
-            
+
             entries[0].second = 1.0;
             entries[1].second = -1.0;
 
@@ -4262,8 +4266,8 @@ bool LPScheduler::isSolution(const MinimalState & state, list<FFEvent> & header,
 
         //const double * lpvars = lp->getSolution();
 
-        const double * const partialSoln = lp->getPartialSolution(numVars, numVars + header.size() + now.size()); 
-        
+        const double * const partialSoln = lp->getPartialSolution(numVars, numVars + header.size() + now.size());
+
         bool headerLoop = true;
         list<FFEvent>::iterator endPt = header.end();
         list<FFEvent>::iterator itr = header.begin();
@@ -4315,34 +4319,34 @@ bool LPScheduler::addAnyNumericConstraints(const list<pair<int, VAL::time_spec >
                                            const int & actStartAt, const int & actEndAt, list<int> & conditionVars)
 {
     static const vector<pair<int,double> > emptyEntries(0);
-    static const bool debug = (Globals::globalVerbosity & 32);    
+    static const bool debug = (Globals::globalVerbosity & 32);
     static const int pneCount = RPGBuilder::getPNECount();
-    
+
     list<pair<int, VAL::time_spec > >::const_iterator condItr = numericConditions.begin();
     const list<pair<int, VAL::time_spec > >::const_iterator condEnd = numericConditions.end();
-    
+
     for (; condItr != condEnd; ++condItr) {
         const RPGBuilder::RPGNumericPrecondition & currPre = RPGBuilder::getNumericPreTable()[condItr->first];
-        
+
         /// TODO extend to variables other than ?duration
-        
+
         double threshold = currPre.RHSConstant;
         VAL::comparison_op op = currPre.op;
-        
+
         if (currPre.LHSVariable != -3) {
             if (currPre.LHSVariable < 2 * pneCount) {
                 cout << "Ignoring conditional effect dependent on " << currPre << " for now\n";
                 return false;
             }
             const RPGBuilder::ArtificialVariable & currAV = RPGBuilder::getArtificialVariable(currPre.LHSVariable);
-            
+
             if (currAV.size != 1 || (currAV.fluents[0] != -3 && currAV.fluents[0] != -19)) {
                 cout << "Ignoring conditional effect dependent on " << currPre << " for now\n";
                 return false;
             }
-            
+
             threshold = currPre.RHSConstant - currAV.constant;
-            
+
             if (currAV.fluents[0] == -19) {
                 if (op == VAL::E_GREATEQ) {
                     op = VAL::E_LESSEQ;
@@ -4354,12 +4358,12 @@ bool LPScheduler::addAnyNumericConstraints(const list<pair<int, VAL::time_spec >
                 }
             }
         }
-        
-        
+
+
         lp->addCol(emptyEntries, 0, 1, MILPSolver::C_BOOL);
-        
+
         const int switchVar = lp->getNumCols() - 1;
-        
+
         if (nameLPElements) {
             ostringstream s;
             s << "dur" << actStartAt;
@@ -4406,23 +4410,23 @@ bool LPScheduler::addAnyNumericConstraints(const list<pair<int, VAL::time_spec >
                     exit(1);
                 }
             }
-            cout << " " << threshold << ")" << endl;                    
+            cout << " " << threshold << ")" << endl;
         }
-        
 
-        
+
+
         static vector<pair<int,double> > durConstraint(3);
-        
+
         // first, we construct a constraint that enforces the bound on ?duration if switchVar = 1
-        
+
         durConstraint[0].first = actEndAt;
         durConstraint[0].second = 1.0;
-        
+
         durConstraint[1].first = actStartAt;
         durConstraint[1].second = -1.0;
-        
+
         durConstraint[2].first = switchVar;
-        
+
         switch (op) {
             case VAL::E_GREATER:
             {
@@ -4453,7 +4457,7 @@ bool LPScheduler::addAnyNumericConstraints(const list<pair<int, VAL::time_spec >
                 std::cerr << "Internal error: = precondition should have been preprocessed into a >=, <= pair\n";
                 exit(1);
             }
-            
+
         }
         if (nameLPElements) {
             ostringstream s;
@@ -4461,50 +4465,50 @@ bool LPScheduler::addAnyNumericConstraints(const list<pair<int, VAL::time_spec >
             string cname = s.str();
             lp->setRowName(lp->getNumRows() - 1, cname);
         }
-        
+
         // next, we construct a constraint that means switchVar = 1 if the bound on ?duration is met
-        
+
         switch (op) {
             case VAL::E_GREATER:
             case VAL::E_GREATEQ:
             {
-                
+
                 durConstraint[0].first = actEndAt;
                 durConstraint[0].second = -1.0;
-                
+
                 durConstraint[1].first = actStartAt;
                 durConstraint[1].second = 1.0;
-                
+
                 durConstraint[2].first = switchVar;
                 durConstraint[2].second = N;
-                
+
                 if (op == VAL::E_GREATER) {
                     lp->addRow(durConstraint, -threshold, LPinfinity);
                 } else {
                     lp->addRow(durConstraint, -(threshold - EPSILON), LPinfinity);
                 }
-                
+
                 break;
             }
-            
+
             case VAL::E_LESS:
             case VAL::E_LESSEQ:
             {
                 durConstraint[0].first = actEndAt;
                 durConstraint[0].second = 1.0;
-                
+
                 durConstraint[1].first = actStartAt;
                 durConstraint[1].second = -1.0;
-                
+
                 durConstraint[2].first = switchVar;
                 durConstraint[2].second = N;
-                
+
                 if (op == VAL::E_LESS) {
                     lp->addRow(durConstraint, threshold, LPinfinity);
                 } else {
                     lp->addRow(durConstraint, threshold + EPSILON, LPinfinity);
                 }
-                
+
                 break;
             }
             default:
@@ -4512,20 +4516,20 @@ bool LPScheduler::addAnyNumericConstraints(const list<pair<int, VAL::time_spec >
                 std::cerr << "Internal error: = precondition should have been preprocessed into a >=, <= pair\n";
                 exit(1);
             }
-            
-            
+
+
         }
-        
+
         if (nameLPElements) {
             ostringstream s;
             s << "durimplsv" << switchVar;
             string cname = s.str();
             lp->setRowName(lp->getNumRows() - 1, cname);
         }
-        
+
         conditionVars.push_back(switchVar);
     }
-    
+
     return true;
 }
 
@@ -4533,18 +4537,18 @@ bool LPScheduler::addAnyNumericConstraints(const list<pair<int, VAL::time_spec >
 bool LPScheduler::addAnyTimeWindowConstraints(const list<pair<Literal*, VAL::time_spec > > & propositionalConditions,
                                               const int & actStartAt, const int & actEndAt, list<int> & conditionVars)
 {
-    
+
     static const vector<pair<int,double> > emptyEntries(0);
-    static const bool debug = (Globals::globalVerbosity & 32);    
-    
+    static const bool debug = (Globals::globalVerbosity & 32);
+
     list<pair<Literal*, VAL::time_spec > >::const_iterator condItr = propositionalConditions.begin();
     const list<pair<Literal*, VAL::time_spec > >::const_iterator condEnd = propositionalConditions.end();
-    
+
     for (int cep = 0; condItr != condEnd; ++condItr, ++cep) {
         const Literal* const currLit = condItr->first;
-    
+
         const list<pair<double,double> > * windows = TemporalAnalysis::factIsVisibleInWindows(currLit);
-        
+
         if (!windows) {
             if (debug) {
                 cout << *currLit << " does not form TIL windows\n";
@@ -4554,36 +4558,36 @@ bool LPScheduler::addAnyTimeWindowConstraints(const list<pair<Literal*, VAL::tim
 
         if (debug) {
             cout << *currLit << " forms TIL windows\n";
-        }            
-        
+        }
+
         vector<int> boundVars(2,-1);
-        
+
         if (condItr->second != VAL::E_AT_END) {
             if (debug) {
                 cout << lp->getColName(actStartAt) << " needs to fall within a window\n";
-            }            
+            }
             boundVars[0] = actStartAt;
-        }        
+        }
         if (condItr->second != VAL::E_AT_START) {
             if (debug) {
                 cout << lp->getColName(actEndAt) << " needs to fall within a window\n";
-            }                        
+            }
             boundVars[1] = actEndAt;
         }
-        
+
         list<pair<double,double> >::const_iterator wItr = windows->begin();
         const list<pair<double,double> >::const_iterator wEnd = windows->end();
-        
+
         list<int> windowSwitches;
-        
+
         for (; wItr != wEnd; ++wItr) {
             int startAndEndVar = -1;
-            for (int vi = 0; vi < 2; ++vi) {            
+            for (int vi = 0; vi < 2; ++vi) {
                 if (boundVars[vi] == -1) continue;
-                
+
                 lp->addCol(emptyEntries, 0, 1, MILPSolver::C_BOOL);
                 const int switchAB = lp->getNumCols() - 1;
-                
+
                 if (nameLPElements) {
                     ostringstream s;
                     s << boundVars[vi]<< "in" << wItr->first << "to";
@@ -4595,68 +4599,68 @@ bool LPScheduler::addAnyTimeWindowConstraints(const list<pair<Literal*, VAL::tim
                     string cname = s.str();
                     lp->setColName(switchAB, cname);
                 }
-                
+
                 static vector<pair<int,double> > binaryConstraint(2);
-                
+
                 if (wItr->first == 0.0) {
-                    
+
                     // if switchAB is set to 1, upper bound on boundVars[vi] is wItr->second
                     binaryConstraint[0].second = 1.0;
-                    binaryConstraint[0].first = boundVars[vi];                    
+                    binaryConstraint[0].first = boundVars[vi];
                     binaryConstraint[1].second = (N - wItr->second - SAFE);
-                    binaryConstraint[1].first = switchAB;                    
+                    binaryConstraint[1].first = switchAB;
                     lp->addRow(binaryConstraint, 0.0, N);
-                    
+
                     // if boundVars[i] < wItr->second, then switchAB must be = 1
                     binaryConstraint[0].second = 1.0;
-                    binaryConstraint[0].first = boundVars[vi];                    
+                    binaryConstraint[0].first = boundVars[vi];
                     binaryConstraint[1].second = N;
-                    binaryConstraint[1].first = switchAB;                    
+                    binaryConstraint[1].first = switchAB;
                     lp->addRow(binaryConstraint, wItr->second, LPinfinity);
-                    
+
                 } else if (wItr->second == DBL_MAX) {
 
                     // if switchAB is set to 1, lower bound on boundVars[vi] is wItr->first
                     binaryConstraint[0].second = 1;
-                    binaryConstraint[0].first = boundVars[vi];                    
+                    binaryConstraint[0].first = boundVars[vi];
                     binaryConstraint[1].second = -(wItr->first + SAFE);
-                    binaryConstraint[1].first = switchAB;                    
+                    binaryConstraint[1].first = switchAB;
                     lp->addRow(binaryConstraint, 0.0, LPinfinity);
-                    
+
                     // if boundVars[i] > wItr->first, then switchAB must be = 1
                     binaryConstraint[0].second = -1;
-                    binaryConstraint[0].first = boundVars[vi];                    
+                    binaryConstraint[0].first = boundVars[vi];
                     binaryConstraint[1].second = N;
-                    binaryConstraint[1].first = switchAB;                    
+                    binaryConstraint[1].first = switchAB;
                     lp->addRow(binaryConstraint, -wItr->first, LPinfinity);
-                    
+
                 } else {
-                    
+
                     lp->addCol(emptyEntries, 0, 1, MILPSolver::C_BOOL);
                     const int lb = lp->getNumCols() - 1;
-                    
+
                     if (nameLPElements) {
                         ostringstream s;
                         s << boundVars[vi]<< "bef" << wItr->second;
                         string cname(s.str());
                         lp->setColName(lb, cname);
                     }
-                    
+
                     // if lb is set to 1, upper bound on boundVars[vi] is wItr->second
                     binaryConstraint[0].second = 1;
-                    binaryConstraint[0].first = boundVars[vi];                    
+                    binaryConstraint[0].first = boundVars[vi];
                     binaryConstraint[1].second = (N - wItr->second - SAFE);
-                    binaryConstraint[1].first = lb;                    
+                    binaryConstraint[1].first = lb;
                     lp->addRow(binaryConstraint, 0.0, N);
-                    
+
                     // if boundVars[i] < wItr->second, then lb must be = 1
                     binaryConstraint[0].second = 1;
-                    binaryConstraint[0].first = boundVars[vi];                    
+                    binaryConstraint[0].first = boundVars[vi];
                     binaryConstraint[1].second = N;
-                    binaryConstraint[1].first = lb;                    
+                    binaryConstraint[1].first = lb;
                     lp->addRow(binaryConstraint, wItr->second, LPinfinity);
 
-                    
+
                     lp->addCol(emptyEntries, 0, 1, MILPSolver::C_BOOL);
                     const int ga = lp->getNumCols() - 1;
 
@@ -4666,35 +4670,35 @@ bool LPScheduler::addAnyTimeWindowConstraints(const list<pair<Literal*, VAL::tim
                         string cname(s.str());
                         lp->setColName(ga, cname);
                     }
-                    
+
                     // if ga is set to 1, lower bound on boundVars[vi] is wItr->first
                     binaryConstraint[0].second = 1;
-                    binaryConstraint[0].first = boundVars[vi];                    
+                    binaryConstraint[0].first = boundVars[vi];
                     binaryConstraint[1].second = -(wItr->first + SAFE);
-                    binaryConstraint[1].first = ga;                    
+                    binaryConstraint[1].first = ga;
                     lp->addRow(binaryConstraint, 0.0, LPinfinity);
-                    
+
                     // if boundVars[i] > wItr->first, then ga must be = 1
                     binaryConstraint[0].second = -1;
-                    binaryConstraint[0].first = boundVars[vi];                    
+                    binaryConstraint[0].first = boundVars[vi];
                     binaryConstraint[1].second = N;
-                    binaryConstraint[1].first = ga;                    
+                    binaryConstraint[1].first = ga;
                     lp->addRow(binaryConstraint, -wItr->first, LPinfinity);
-                    
+
                     // if switchAB = 1, lb = 1
                     binaryConstraint[0].second = -1;
-                    binaryConstraint[0].first = switchAB;                    
+                    binaryConstraint[0].first = switchAB;
                     binaryConstraint[1].second = 1;
-                    binaryConstraint[1].first = lb;                    
+                    binaryConstraint[1].first = lb;
                     lp->addRow(binaryConstraint, 0, LPinfinity);
 
                     // if switchAB = 1, ga = 1
                     binaryConstraint[0].second = -1;
-                    binaryConstraint[0].first = switchAB;                    
+                    binaryConstraint[0].first = switchAB;
                     binaryConstraint[1].second = 1;
-                    binaryConstraint[1].first = ga;                    
+                    binaryConstraint[1].first = ga;
                     lp->addRow(binaryConstraint, 0, LPinfinity);
-                                      
+
                     static vector<pair<int,double> > bothForceAB(3);
                     // if ga =1 and lb = 1, switchAB = 1
                     bothForceAB[0].second = 1;
@@ -4703,17 +4707,17 @@ bool LPScheduler::addAnyTimeWindowConstraints(const list<pair<Literal*, VAL::tim
                     bothForceAB[1].first = ga;
                     bothForceAB[2].second = -1;
                     bothForceAB[2].first = lb;
-                    lp->addRow(bothForceAB, -1, LPinfinity);                    
+                    lp->addRow(bothForceAB, -1, LPinfinity);
                 }
-                
+
                 if (startAndEndVar == -1) {
                     startAndEndVar = switchAB;
                 } else {
                     const int switchAB2 = startAndEndVar;
-                    
+
                     lp->addCol(emptyEntries, 0, 1, MILPSolver::C_BOOL);
                     const int switchABBoth = lp->getNumCols() - 1;
-                    
+
                     static vector<pair<int,double> > bothForceOverall(3);
                     // If both the start and the end are in, then over all is in
                     bothForceOverall[0].second = 1;
@@ -4722,10 +4726,10 @@ bool LPScheduler::addAnyTimeWindowConstraints(const list<pair<Literal*, VAL::tim
                     bothForceOverall[1].first = switchAB;
                     bothForceOverall[2].second = -1;
                     bothForceOverall[2].first = switchAB2;
-                    lp->addRow(bothForceOverall, -1, LPinfinity);                    
-                    
+                    lp->addRow(bothForceOverall, -1, LPinfinity);
+
                     static vector<pair<int,double> > binaryConstraint(2);
-                    
+
                     // if overall is in, then the end must be in
                     binaryConstraint[0].second = 1;
                     binaryConstraint[0].first = switchAB;
@@ -4739,35 +4743,35 @@ bool LPScheduler::addAnyTimeWindowConstraints(const list<pair<Literal*, VAL::tim
                     binaryConstraint[1].second = -1;
                     binaryConstraint[1].first = switchABBoth;
                     lp->addRow(binaryConstraint, 0.0, LPinfinity);
-                    
+
                 }
             }
-            
+
             windowSwitches.push_back(startAndEndVar);
         }
-        
+
         const int wCount = windowSwitches.size();
         if (wCount == 1) {
             conditionVars.push_back(windowSwitches.front());
         } else {
             lp->addCol(emptyEntries, 0, 1, MILPSolver::C_BOOL);
             const int switchOverall = lp->getNumCols() - 1;
-            
+
             if (nameLPElements) {
                 ostringstream s;
                 s << actStartAt << "c" << cep << "met";
                 string cname(s.str());
                 lp->setColName(switchOverall, cname);
-                
+
             }
             conditionVars.push_back(switchOverall);
-            
+
             {
                 static vector<pair<int,double> > binaryConstraint(2);
-                
+
                 list<int>::const_iterator swItr = windowSwitches.begin();
                 const list<int>::const_iterator swEnd = windowSwitches.end();
-                
+
                 for (; swItr != swEnd; ++swItr) {
                     // if one window's switch is true, the overall switch must be true
                     binaryConstraint[0].second = 1;
@@ -4777,13 +4781,13 @@ bool LPScheduler::addAnyTimeWindowConstraints(const list<pair<Literal*, VAL::tim
                     lp->addRow(binaryConstraint, 0.0, LPinfinity);
                 }
             }
-            
+
             vector<pair<int,double> > entries(wCount + 1);
-            
+
             {
                 list<int>::const_iterator swItr = windowSwitches.begin();
                 const list<int>::const_iterator swEnd = windowSwitches.end();
-                
+
                 for (int vi = 0; swItr != swEnd; ++swItr, ++vi) {
                     entries[vi].first = *swItr;
                     entries[vi].second = 1.0;
@@ -4791,22 +4795,22 @@ bool LPScheduler::addAnyTimeWindowConstraints(const list<pair<Literal*, VAL::tim
             }
             entries[wCount].first = switchOverall;
             entries[wCount].second = -1.0;
-            
+
             // if the overall switch is 1, then at least one of the window
             // switches must also be 1
             lp->addRow(entries, 0.0, LPinfinity);
 
         }
     }
-    
+
     return true;
 }
 
 
 bool LPScheduler::scheduleToMetric()
-{   
+{
     static const vector<pair<int,double> > emptyEntries(0);
-    
+
     int variableForRecentStep = -1;
     if (previousObjectiveVar != -1) {
         variableForRecentStep = previousObjectiveVar;
@@ -4815,15 +4819,15 @@ bool LPScheduler::scheduleToMetric()
     }
 
     // First, make sure that in scheduling to the metric, we don't break the goals
-    
+
     list<const Constraint*>::iterator gItr = goalConstraints.begin();
     const list<const Constraint*>::iterator gEnd = goalConstraints.end();
-    
+
     for (; gItr != gEnd; ++gItr) {
         const int cSize = (*gItr)->weights.size();
-        
+
         vector<pair<int,double> > entries(cSize);
-        
+
         for (int s = 0 ; s < cSize; ++s) {
             entries[s].second = (*gItr)->weights[s];
             if (assertions) assert(entries[s].second != 0.0);
@@ -4831,11 +4835,11 @@ bool LPScheduler::scheduleToMetric()
         }
         lp->addRow(entries, (*gItr)->lower, (*gItr)->upper);
     }
-    
+
     // ... and make a term for makespan, in case it appears in the objective
     // (or, after that, to find a good makespan within the best-quality solutions)
-    
-    
+
+
     lp->addCol(emptyEntries, makespanVarMinimum, LPinfinity, MILPSolver::C_REAL);
 
     const int variableForMakespan = lp->getNumCols() - 1;
@@ -4846,7 +4850,7 @@ bool LPScheduler::scheduleToMetric()
 
         for (; comesAfter != comesAfterEnd; ++comesAfter) {
             static vector<pair<int,double> > entries(2);
-            
+
             entries[0].second = 1.0;
             entries[1].second = -1.0;
 
@@ -4858,31 +4862,31 @@ bool LPScheduler::scheduleToMetric()
         }
     }
 
-    
+
     const RPGBuilder::Metric * const metric = RPGBuilder::getMetric();
-    
+
     MILPSolver::Objective newObjective(!metric->minimise);
-    
+
     const int termCount = metric->variables.size();
-    
+
     /* For each metric variable, specifies its weight in the objective function */
     map<int, double> mapVariableToObjectiveWeight;
-    
+
     /* For each metric term, the LP column containing its value. */
     vector<int> columnForTerm(termCount);
-    
+
     if (termCount == 1 && metric->variables.front() < 0) {
         cout << "; Warning: metric is just to optimise makespan, so post-hoc optimisation is redundant unless being used as a partial-order lifter\n";
     }
-    
+
     list<double>::const_iterator wItr = metric->weights.begin();
     list<int>::const_iterator vItr = metric->variables.begin();
-    
+
     for (int t = 0; t < termCount; ++t, ++vItr, ++wItr) {
         const int currVar = *vItr;
 
         mapVariableToObjectiveWeight.insert(make_pair(currVar, *wItr));
-        
+
         if (currVar < 0) {
             columnForTerm[t] = variableForMakespan;
             if (variableForMakespan != -1) {
@@ -4890,11 +4894,11 @@ bool LPScheduler::scheduleToMetric()
             }
             continue;
         }
-        
+
         FluentTracking & varInfo = finalNumericVars[currVar];
-        
+
         if (varInfo.statusOfThisFluent == FluentTracking::FS_IGNORE) continue;
-        
+
         if (varInfo.statusOfThisFluent == FluentTracking::FS_NORMAL) {
             if (lpDebug & 1) {
                 cout << *(RPGBuilder::getPNE(currVar)) << " is a normal variable, adding " << *wItr << " times it to the objective\n";
@@ -4903,17 +4907,17 @@ bool LPScheduler::scheduleToMetric()
 
             if (varInfo.lastEffectTimestampVariable != -1) {
                 newObjective.getTerm(varInfo.lastEffectTimestampVariable).linearCoefficient = *wItr;
-            }                
-            
+            }
+
         } else {
 
             if (lpDebug & 1) {
                 cout << *(RPGBuilder::getPNE(currVar)) << " is an order-independent metric variable, adding terms to objective:\n\t";
             }
-            
+
             map<int,double>::const_iterator termItr = varInfo.orderIndependentValueTerms.begin();
             const map<int,double>::const_iterator termEnd = varInfo.orderIndependentValueTerms.end();
-            
+
             for (bool plus=false; termItr != termEnd; ++termItr) {
                 newObjective.getTerm(termItr->first).linearCoefficient += (*wItr * termItr->second);
                 if (lpDebug & 1) {
@@ -4927,48 +4931,48 @@ bool LPScheduler::scheduleToMetric()
             if (lpDebug & 1) {
                 cout << endl;
             }
-                
-            
+
+
         }
     }
 
-    
+
     const int actCount = planAsAVector.size();
-    
+
     for (int act = 0; act < actCount; ++act) {
-        FFEvent * const currEvent = planAsAVector[act];        
+        FFEvent * const currEvent = planAsAVector[act];
         if (currEvent->time_spec == VAL::E_AT) continue;
         if (currEvent->time_spec == VAL::E_AT_END) continue;
-        
+
         const list<RPGBuilder::ConditionalEffect> & condEffs = RPGBuilder::getActionsToConditionalEffects()[currEvent->action->getID()];
         if (condEffs.empty()) continue;
-        
+
         const int actStartAt = timestampVars[act];
         const int actEndAt = (RPGBuilder::getRPGDEs(currEvent->action->getID()).empty() ? -1 : timestampVars[currEvent->pairWithStep]);
-        
+
         list<RPGBuilder::ConditionalEffect>::const_iterator ceItr = condEffs.begin();
         const list<RPGBuilder::ConditionalEffect>::const_iterator ceEnd = condEffs.end();
-        
+
         for (int cep = 0; ceItr != ceEnd; ++ceItr, ++cep) {
             list<int> conditionVars;
-            
-            
+
+
             const bool success = addAnyTimeWindowConstraints(ceItr->getPropositionalConditions(), actStartAt, actEndAt, conditionVars);
 
             if (!success) continue;
-            
+
             const bool success2 = addAnyNumericConstraints(ceItr->getNumericPreconditions(), actStartAt, actEndAt, conditionVars);
-            
+
             if (!success2) continue;
-            
+
             int colRepresentingAllConstraintsSatisfied = -1;
-            
+
             const int cvCount = conditionVars.size();
-            
-            if (cvCount == 1) {                
+
+            if (cvCount == 1) {
                 colRepresentingAllConstraintsSatisfied = conditionVars.front();
             } else if (cvCount > 1) {
-                lp->addCol(emptyEntries, 0, 1, MILPSolver::C_BOOL);            
+                lp->addCol(emptyEntries, 0, 1, MILPSolver::C_BOOL);
                 colRepresentingAllConstraintsSatisfied = lp->getNumCols() - 1;
 
                 if (nameLPElements) {
@@ -4977,12 +4981,12 @@ bool LPScheduler::scheduleToMetric()
                     string cname(s.str());
                     lp->setColName(colRepresentingAllConstraintsSatisfied, cname);
                 }
-                
+
                 static vector<pair<int,double> > binaryConstraint(2);
                 {
                     list<int>::const_iterator cvItr = conditionVars.begin();
                     const list<int>::const_iterator cvEnd = conditionVars.end();
-                    
+
                     for (; cvItr != cvEnd; ++cvItr) {
                         // if all constraints are considered satisfied, each must be
                         binaryConstraint[0].second = 1;
@@ -4992,56 +4996,56 @@ bool LPScheduler::scheduleToMetric()
                         lp->addRow(binaryConstraint, 0.0, LPinfinity);
                     }
                 }
-                
+
                 vector<pair<int,double> > entries(cvCount + 1);
-                                                
+
                 {
                     list<int>::const_iterator cvItr = conditionVars.begin();
                     const list<int>::const_iterator cvEnd = conditionVars.end();
- 
+
                     for (int cvi = 0; cvItr != cvEnd; ++cvItr, ++cvi) {
                         entries[cvi].second = -1;
                         entries[cvi].first = *cvItr;
                     }
-                                                
+
                 }
 
                 entries[cvCount].first = colRepresentingAllConstraintsSatisfied;
                 entries[cvCount].second = 1.0;
-                
+
                 // if all the condition switches are set to 1, the overall switch must be also
-            
+
                 lp->addRow(entries, 1-cvCount, LPinfinity);
-                                                  
+
             }
-            
+
             // now, using the variable 'colRepresentingAllConstraintsSatisfied' we need to
             // add the conditional effects
-            
+
              const list<pair<int, VAL::time_spec> > & effs = ceItr->getNumericEffects();
             list<pair<int, VAL::time_spec> >::const_iterator effItr = effs.begin();
             const list<pair<int, VAL::time_spec> >::const_iterator effEnd = effs.end();
-            
+
             /* The sum effect on the objective if all conditions are met. */
-            
+
             MILPSolver::Objective::Coefficient & overallObjectiveWeightOfEffect = newObjective.getTerm(colRepresentingAllConstraintsSatisfied);
-            
+
             for (; effItr != effEnd; ++effItr) {
                 const RPGBuilder::RPGNumericEffect & currEff = RPGBuilder::getNumericEff()[effItr->first];
-                
+
                 map<int,double>::const_iterator wItr = mapVariableToObjectiveWeight.find(currEff.fluentIndex);
-                
+
                 if (wItr == mapVariableToObjectiveWeight.end()) {
                     // has no weight (or a 0 weight) in the :metric
                     continue;
                 }
-                
+
                 if (currEff.isAssignment) {
                     cout << "Warning: ignoring conditional metric effect " << currEff << ", as for now only increase/decrease metric conditional effects are supported\n";
                     continue;
                 }
-                
-                
+
+
                 {
                     int s = 0;
                     for (; s < currEff.size; ++s) {
@@ -5054,9 +5058,9 @@ bool LPScheduler::scheduleToMetric()
                         continue;
                     }
                 }
-                                                
+
                 overallObjectiveWeightOfEffect.linearCoefficient += wItr->second * currEff.constant;
-                
+
                 for (int s = 0; s < currEff.size; ++s) {
                     if (currEff.variables[s] == -3) {
                         overallObjectiveWeightOfEffect.nonLinearCoefficients.insert(make_pair(actEndAt, 0.0)).first->second += (currEff.weights[s] * wItr->second);
@@ -5067,10 +5071,10 @@ bool LPScheduler::scheduleToMetric()
                         overallObjectiveWeightOfEffect.nonLinearCoefficients.insert(make_pair(actStartAt, 0.0)).first->second += (currEff.weights[s] * wItr->second);
                     }
                 }
-                
-                
+
+
             }
-     
+
             if (colRepresentingAllConstraintsSatisfied != -1) {
                 if (Globals::globalVerbosity & 32) {
                     cout << "Adding term to objective: " << overallObjectiveWeightOfEffect.linearCoefficient << "*" << lp->getColName(colRepresentingAllConstraintsSatisfied) << endl;
@@ -5080,7 +5084,7 @@ bool LPScheduler::scheduleToMetric()
                         cout << "Adding quadratic terms to objective: " << lp->getColName(colRepresentingAllConstraintsSatisfied) << " * (";
                         map<int,double>::const_iterator qtItr = overallObjectiveWeightOfEffect.nonLinearCoefficients.begin();
                         const map<int,double>::const_iterator qtEnd = overallObjectiveWeightOfEffect.nonLinearCoefficients.end();
-                        
+
                         for (bool plus = false; qtItr != qtEnd; ++qtItr, plus = true) {
                             if (plus) {
                                 cout << " + ";
@@ -5096,11 +5100,11 @@ bool LPScheduler::scheduleToMetric()
             }
         }
     }
-    
+
     if (Globals::globalVerbosity & 32) {
         MILPSolver::debug = true;
     }
-    
+
     lp->setQuadraticObjective(newObjective);
     if (!lp->quadraticPreSolve()) {
         if (Globals::globalVerbosity & 32) {
@@ -5108,7 +5112,7 @@ bool LPScheduler::scheduleToMetric()
         }
         return false;
     }
-    
+
     lp->setMaximiseObjective(false);
     lp->setObjCoeff(variableForMakespan, 1);
 
@@ -5116,18 +5120,18 @@ bool LPScheduler::scheduleToMetric()
         cout << "Set objective to minimise makespan variable " << lp->getColName(variableForMakespan) << endl;
         lp->writeLp("final.lp");
     }
-    
+
     return true;
     // all done - the actual (final) solving is done back in the calling method (the constructor)
-    
+
 }
 
 void LPScheduler::pushTimestampToMin()
 {
     if (lpDebug & 1) {
         cout << COLOUR_light_red << "Min timestamp of new step is now " << timestampToUpdate->lpTimestamp << ", rather than " << timestampToUpdate->lpMinTimestamp << COLOUR_default << endl;
-    }                                                                
-    
+    }
+
     if (cd) {
         if (!cd->updateLPMinTimestamp(timestampToUpdate->lpMinTimestamp, timestampToUpdateStep)) {
             std::cerr << "Internal error: the solution found by the LP should not violate the temporal constraints used by BF\n";
@@ -5136,17 +5140,17 @@ void LPScheduler::pushTimestampToMin()
         if (!Globals::profileScheduling) {
             cd->distsToLPMinStamps();
         }
-        
+
         lp->setColLower(timestampToUpdateVar, timestampToUpdate->lpMinTimestamp);
-        
+
         if (timestampToUpdatePartner) {
             lp->setColLower(timestampToUpdatePartnerVar, timestampToUpdatePartner->lpMinTimestamp);
         }
-        
+
     } else {
         timestampToUpdate->lpMinTimestamp = timestampToUpdate->lpTimestamp;
         lp->setColLower(timestampToUpdateVar, timestampToUpdate->lpMinTimestamp);
-        
+
         if (timestampToUpdatePartner) {
             if (timestampToUpdate->time_spec == VAL::E_AT_END) {
                 const double newMin = timestampToUpdate->lpMinTimestamp - timestampToUpdate->maxDuration;
@@ -5154,8 +5158,8 @@ void LPScheduler::pushTimestampToMin()
                 if (newMin > oldMin) {
                     if (lpDebug & 1) {
                         cout << COLOUR_light_red << "Min timestamp of corresponding start is now " << newMin << " rather than " << oldMin << COLOUR_default << endl;
-                    }                            
-                    
+                    }
+
                     oldMin = newMin;
                     lp->setColLower(timestampToUpdatePartnerVar, newMin);
                 }
@@ -5165,14 +5169,14 @@ void LPScheduler::pushTimestampToMin()
                 if (newMin > oldMin) {
                     if (lpDebug & 1) {
                         cout << COLOUR_light_red << "Min timestamp of corresponding end is now " << newMin << " rather than " << oldMin << COLOUR_default << endl;
-                    }                            
-                    
+                    }
+
                     oldMin = newMin;
                     lp->setColLower(timestampToUpdatePartnerVar, newMin);
                 }
             }
         }
-    }            
+    }
 }
 
 bool LPScheduler::addRelaxedPlan(list<FFEvent> & header, list<FFEvent> & now, list<pair<double, list<ActionSegment> > > & relaxedPlan)
@@ -5367,7 +5371,7 @@ ParentData * LPScheduler::prime(list<FFEvent> & header, const TemporalConstraint
 
     if (primeDebug) {
         cout << "Parent nodes 0 to " << i - 1 << ": events [";
-        
+
         for (int p = 0; p < i; ++p) {
             if (p) cout << ",";
             cout << -toReturn->getDistToZero()[p];
@@ -5484,11 +5488,11 @@ ParentData * LPScheduler::prime(list<FFEvent> & header, const TemporalConstraint
     if (Globals::paranoidScheduling) {
         // should, here, be consistent
         const bool noisy = Globals::globalVerbosity & 4096;
-        
+
         const int mSize = header.size() + 1;
 
         vector<FFEvent*> eventsWithFakes(mSize - 1, (FFEvent*)0);
-        
+
         vector<vector<double> > matrix(mSize, vector<double>(mSize, DBL_MAX));
 
         for (int m = 0; m < mSize; ++m) {
@@ -5498,7 +5502,7 @@ ParentData * LPScheduler::prime(list<FFEvent> & header, const TemporalConstraint
 
         list<FFEvent>::iterator hItr = header.begin();
         const list<FFEvent>::iterator hEnd = header.end();
-        
+
         for (int m = 1; hItr != hEnd; ++hItr, ++m) {
             matrix[m][0] = 0.0;
             eventsWithFakes[m-1] = &(*hItr);
@@ -5551,7 +5555,7 @@ ParentData * LPScheduler::prime(list<FFEvent> & header, const TemporalConstraint
             } else {
                 if (noisy) cout << "Not changing edge from " << m - 1 << " to time zero due to known minimum timestamp for action\n";
             }
-            
+
             if (eventsWithFakes[m-1]->lpMaxTimestamp != -1.0) {
                 if (eventsWithFakes[m-1]->lpMaxTimestamp < matrix[0][m]) {
                     matrix[0][m] = eventsWithFakes[m-1]->lpMaxTimestamp;
@@ -5611,7 +5615,7 @@ ParentData * LPScheduler::prime(list<FFEvent> & header, const TemporalConstraint
         }
     }
 
-    
+
     return toReturn;
 }
 
@@ -5658,8 +5662,8 @@ ChildData * ParentData::spawnChildData(list<StartEvent> & seq,
     }
 
     const int mustComeBeforeOpenEnds = MinimalState::getTransformer()->stepThatMustPrecedeUnfinishedActions(cons);
-        
-        
+
+
     double TILupbo = MinimalState::getTransformer()->latestTimePointOfActionsStartedHere(nextTIL);
 
     ChildData * toReturn = 0;
@@ -5718,7 +5722,7 @@ ChildData * ParentData::spawnChildData(list<StartEvent> & seq,
             if (spawnDebug) {
                 cout << "This step, " << endLocation<< ", must come before all open ends\n";
             }
-            
+
             list<StartEvent>::iterator seqFillItr = seq.begin();
             const list<StartEvent>::iterator seqFillEnd = seq.end();
 
@@ -5782,7 +5786,7 @@ ChildData * ParentData::spawnChildData(list<StartEvent> & seq,
                             } else {
                                 if (spawnDebug) {
                                     cout << "Already knew there should be an epsilon separation edge from " << newCbf->first << " to the end snap-action that has been applied\n";
-                                }                                
+                                }
                             }
                         }
                         ++oldCbf;
@@ -5979,14 +5983,14 @@ ChildData * ParentData::spawnChildData(list<StartEvent> & seq,
                 if (preceding) {
                     map<int, bool>::const_iterator pItr = preceding->begin();
                     const map<int, bool>::const_iterator pEnd = preceding->end();
-                    
+
                     for (; pItr != pEnd; ++pItr) {
                         const double w = -(toReturn->getDistToZero()[pItr->first] - (pItr->second ? 0.001 : 0.0));
                         if (endMin < w) endMin = w;
                     }
                 }
-            }                        
-            
+            }
+
             {
                 const double sEndMin = startMin + s.minDuration;
                 if (sEndMin > endMin) endMin = sEndMin;
@@ -6032,8 +6036,8 @@ ChildData * ParentData::spawnChildData(list<StartEvent> & seq,
             childEvents[startLocation]->lpMinTimestamp = 0.0;
             childEvents[startLocation]->lpMaxTimestamp = DBL_MAX;
         } else {
-            childEvents[startLocation]->lpMinTimestamp = startMin;        
-            childEvents[startLocation]->lpMaxTimestamp = startMax;            
+            childEvents[startLocation]->lpMinTimestamp = startMin;
+            childEvents[startLocation]->lpMaxTimestamp = startMax;
         }
 
         if (spawnDebug) cout << "Initially putting at " << startMin;
@@ -6055,8 +6059,8 @@ ChildData * ParentData::spawnChildData(list<StartEvent> & seq,
             } else {
                 childEvents[endLocation]->lpMinTimestamp = endMin;
                 childEvents[endLocation]->lpMaxTimestamp = endMax;
-            } 
-        
+            }
+
             if (spawnDebug) {
                 cout << " ; " << endMin << "\n";
             }
@@ -6128,7 +6132,7 @@ ChildData * ParentData::spawnChildData(list<StartEvent> & seq,
                 }
             }
         }
-        
+
         if (!nonTemporal) {
             toReturn->makeEdgeListFor(endLocation);
 
@@ -6159,7 +6163,7 @@ ChildData * ParentData::spawnChildData(list<StartEvent> & seq,
                     }
                 }
             }
-            
+
             {
 
                 list<StartEvent>::iterator seqFillItr = seq.begin();
@@ -6305,7 +6309,7 @@ ChildData * ParentData::spawnChildData(list<StartEvent> & seq,
                 const int cbf = toReturn->getPairWith()[seqFillItr->stepID];
                 if (spawnDebug) cout << "Adding edge from time zero to a future step " << cbf << " to set its min ts to " << tilTime + 0.001 << "\n";
                 toReturn->addNewEdge(BFEdge(-1, cbf, tilTime + 0.001, distFromZero[cbf]));
-                
+
                 if (spawnDebug) cout << "Adding epsilon separation edge from " << startGap << " to some future end event " << cbf << "\n";
                 toReturn->addNewEdge(BFEdge(startGap, cbf, 0.001, DBL_MAX));
 
@@ -6322,10 +6326,10 @@ ChildData * ParentData::spawnChildData(list<StartEvent> & seq,
                 if (beforeFutureStep->find(startGap) != beforeFutureStep->end()) {
                     if (spawnDebug) cout << "Adding edge from time zero to a future step " << cbf << " to set its min ts to " << tilTime + 0.001 << "\n";
                     toReturn->addNewEdge(BFEdge(-1, cbf, tilTime + 0.001, distFromZero[cbf]));
-                    
+
                     if (spawnDebug) cout << "Adding epsilon separation edge from " << startGap << " to some future end event " << cbf << "\n";
                     toReturn->addNewEdge(BFEdge(startGap, cbf, 0.001, DBL_MAX));
-                    
+
                 }
             }
         }
@@ -6353,13 +6357,13 @@ ChildData * ParentData::spawnChildData(list<StartEvent> & seq,
                     if (spawnDebug) cout << "Adding edge from time zero to a preceding step " << af << " to set its max ts to " << tilTime - 0.001 << "\n";
                     toReturn->addNewEdge(BFEdge(-1, af, w, tilTime - 0.001));
                     if (spawnDebug) cout << "Adding epsilon separation edge from step " << af << " to TIL\n";
-                    toReturn->addNewEdge(BFEdge(af, startGap, 0.001, DBL_MAX));                                        
+                    toReturn->addNewEdge(BFEdge(af, startGap, 0.001, DBL_MAX));
                 } else {
                     if (spawnDebug) cout << "Latest step " << af << " could come at was " << distFromZero[af] << ", so it is unaffected\n";
                     toReturn->makeEdgeListFor(af).addFollower(startGap, true);
                     toReturn->makeEdgeListFor(startGap).addPredecessor(af, true);
                 }
-                
+
                 /* else {
                     childEvents[af]->lpMaxTimestamp = tilTime - 0.001;
                 }*/
@@ -6452,7 +6456,7 @@ bool ChildData::propagateNewEdges()
             } else {
                 if (noisy) cout << "Not changing edge from " << m - 1 << " to time zero due to known minimum timestamp for action\n";
             }
-            
+
             if (eventsWithFakes[m-1]->lpMaxTimestamp != -1.0) {
                 if (eventsWithFakes[m-1]->lpMaxTimestamp < matrix[0][m]) {
                     matrix[0][m] = eventsWithFakes[m-1]->lpMaxTimestamp;
@@ -6536,9 +6540,9 @@ bool ChildData::propagateNewEdges()
                 cout << -distToZero[i];
             }
             cout << "]\n";
-                    
+
         }
-        
+
         if (floydDoubleCheck) {
 
             const int mSize = eventsWithFakes.size() + 1;
@@ -6563,7 +6567,7 @@ bool ChildData::propagateNewEdges()
 
                     matrix[m][0] = -1 * startMin;
                     matrix[0][m] = startMax;
-                    
+
                     if (noisy) cout << "Edge from " << m - 1 << " to time zero - " << -startMin << " due to earliest RPG start point of action\n";
                 } else if (eventsWithFakes[m-1]->time_spec == VAL::E_AT_END) {
                     const vector<pair<double, double> > & tsBounds = TemporalAnalysis::getActionTSBounds()[eventsWithFakes[m-1]->action->getID()];
@@ -6610,7 +6614,7 @@ bool ChildData::propagateNewEdges()
                 } else {
                     if (noisy) cout << "Not changing edge from " << m - 1 << " to time zero due to known minimum timestamp for action\n";
                 }
-            
+
                 if (eventsWithFakes[m-1]->lpMaxTimestamp != -1.0) {
                     if (eventsWithFakes[m-1]->lpMaxTimestamp < matrix[0][m]) {
                         matrix[0][m] = eventsWithFakes[m-1]->lpMaxTimestamp;
@@ -6668,7 +6672,7 @@ bool ChildData::propagateNewEdges()
                                         cout << "Was " << distIJ << ", now " << distIK + distKJ << endl;
                                     }
                                 }*/
-                                
+
                                 distIJ = distIK + distKJ;
                                 paths[i][j] = k;
                             }
@@ -6694,12 +6698,12 @@ bool ChildData::propagateNewEdges()
                         if (fabs(fabs(distToZero[m-1]) - fabs(matrix[m][0])) >= 0.00001) {
                             cout << " - Path from " << (m-1) << " to time zero: ";
                             int previous = m;
-                            int goTo = paths[m][0];        
+                            int goTo = paths[m][0];
                             cout << " to " << goTo - 1 << ", ";
                             while (goTo != previous) {
                                 cout << matrix[previous][goTo];
                                 previous = goTo;
-                                goTo = paths[goTo][0];         
+                                goTo = paths[goTo][0];
                                 cout << "; to " << goTo - 1 << ", ";
                             }
                             cout << endl;
