@@ -19,7 +19,7 @@ These are packaged with most linux distributions - on Ubuntu/Debian, the
 following should suffice:
 
 sudo apt-get install cmake coinor-libcbc-dev coinor-libclp-dev \
-                     coinor-libcoinutils-dev bison flex
+                     coinor-libcoinutils-dev bison flex flex++
 
 
 After that, run ./build
