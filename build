@@ -1,5 +1,5 @@
 #!/bin/bash
 
-mkdir -p compile && cd compile
-cmake ../src -DCMAKE_BUILD_TYPE=Release -DCMAKE_VERBOSE_MAKEFILE=TRUE 
-make popf3-clp
+mkdir -p compile && cd compile || exit 1
+cmake -G "Unix Makefiles" ../src -DCMAKE_BUILD_TYPE=Release -DCMAKE_VERBOSE_MAKEFILE=TRUE 
+make popf3-clp -j"$(nproc)"
